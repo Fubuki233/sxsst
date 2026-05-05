@@ -103,6 +103,10 @@ export default function KnowledgeMapPage() {
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ mx: 0, my: 0, px: 0, py: 0 });
   const dragTotalRef = useRef(0);
+  const zoomStateRef = useRef(1);
+
+  // Keep ref in sync for pinch handler
+  useEffect(() => { zoomStateRef.current = zoom; }, [zoom]);
 
   useEffect(() => {
     const stats = storage.getKnowledgeStats();
@@ -142,11 +146,17 @@ export default function KnowledgeMapPage() {
     }));
   }, [selectedSubject, knowledgeStats, dim]);
 
-  // ── Zoom via wheel ──
+  // ── Pinch zoom state (refs to avoid re-renders during pinch) ──
+  const pinchDistRef = useRef(0);
+  const pinchStartZoomRef = useRef(1);
+
+  // ── Zoom via wheel / pinch ──
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const wheel = (e: WheelEvent) => {
+      // Ctrl+wheel on some trackpads triggers gesture — ignore if ctrlKey
+      if (e.ctrlKey) { e.preventDefault(); return; }
       e.preventDefault();
       const factor = e.deltaY < 0 ? 1.08 : 1 / 1.08;
       setZoom(z => {
@@ -154,8 +164,39 @@ export default function KnowledgeMapPage() {
         return Math.min(2.5, Math.max(0.35, next));
       });
     };
+    // Pinch gesture
+    const touchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        pinchDistRef.current = Math.sqrt(dx * dx + dy * dy);
+        pinchStartZoomRef.current = zoomStateRef.current;
+      }
+    };
+    const touchMovePinch = (e: TouchEvent) => {
+      if (e.touches.length === 2 && pinchDistRef.current > 0) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const scale = dist / pinchDistRef.current;
+        const next = pinchStartZoomRef.current * scale;
+        setZoom(Math.min(2.5, Math.max(0.35, next)));
+      }
+    };
+    const touchEndPinch = (e: TouchEvent) => {
+      if (e.touches.length < 2) pinchDistRef.current = 0;
+    };
     el.addEventListener('wheel', wheel, { passive: false });
-    return () => el.removeEventListener('wheel', wheel);
+    el.addEventListener('touchstart', touchStart, { passive: false });
+    el.addEventListener('touchmove', touchMovePinch, { passive: false });
+    el.addEventListener('touchend', touchEndPinch);
+    return () => {
+      el.removeEventListener('wheel', wheel);
+      el.removeEventListener('touchstart', touchStart);
+      el.removeEventListener('touchmove', touchMovePinch);
+      el.removeEventListener('touchend', touchEndPinch);
+    };
   }, []);
 
   // ── Pan: use refs + one-shot listeners for both mouse and touch ──
@@ -202,7 +243,7 @@ export default function KnowledgeMapPage() {
 
   const onBallDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
-    e.preventDefault();
+    // Don't e.preventDefault() — it would block pinch-zoom gestures on mobile
     const c = 'touches' in e ? e.touches[0] : e;
     startDrag(c.clientX, c.clientY);
   }, [pan]);
