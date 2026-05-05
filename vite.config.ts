@@ -17,8 +17,6 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
-  // GitHub Pages deploys to /sxsst/ subdirectory
-  base: '/sxsst/',
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
