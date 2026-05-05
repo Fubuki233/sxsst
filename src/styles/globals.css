@@ -1,0 +1,54 @@
+/* ── Page transition animations ── */
+
+.page-transition-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.page-transition-wrapper > * {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Forward: target slides in from right, current slides out left */
+@keyframes slideInFromRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* Back: target slides in from left, current slides out right */
+@keyframes slideInFromLeft {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+/* Current page sliding out */
+@keyframes slideOutToLeft {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+@keyframes slideOutToRight {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+
+.page-enter-forward {
+  animation: slideInFromRight 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.page-exit-forward {
+  animation: slideOutToLeft 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.page-enter-back {
+  animation: slideInFromLeft 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.page-exit-back {
+  animation: slideOutToRight 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
