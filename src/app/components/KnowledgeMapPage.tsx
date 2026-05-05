@@ -158,24 +158,34 @@ export default function KnowledgeMapPage() {
     return () => el.removeEventListener('wheel', wheel);
   }, []);
 
-  // ── Pan: use refs + one-shot listeners, NOT state-driven effect ──
+  // ── Pan: use refs + one-shot listeners for both mouse and touch ──
   useEffect(() => {
-    const move = (e: MouseEvent) => {
+    const move = (clientX: number, clientY: number) => {
       if (!isDraggingRef.current) return;
-      const dx = e.clientX - dragStartRef.current.mx;
-      const dy = e.clientY - dragStartRef.current.my;
+      const dx = clientX - dragStartRef.current.mx;
+      const dy = clientY - dragStartRef.current.my;
       dragTotalRef.current += Math.abs(dx) + Math.abs(dy);
       setPan({ x: dragStartRef.current.px + dx, y: dragStartRef.current.py + dy });
+    };
+    const onMouseMove = (e: MouseEvent) => move(e.clientX, e.clientY);
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isDraggingRef.current) return;
+      e.preventDefault();
+      if (e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY);
     };
     const up = () => {
       isDraggingRef.current = false;
       setTimeout(() => { dragTotalRef.current = 0; }, 100);
     };
-    window.addEventListener('mousemove', move);
+    window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', up);
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', up);
     return () => {
-      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', up);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', up);
     };
   }, []);
 
