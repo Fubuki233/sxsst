@@ -27,7 +27,7 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --no-frozen-lockfile
-      - run: pnpm build -- --base=/sxsst/
+      - run: pnpm exec vite build --base=/sxsst/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
