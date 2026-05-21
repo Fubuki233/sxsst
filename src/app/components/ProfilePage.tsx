@@ -4,6 +4,10 @@ import { storage, Answer } from '../utils/storage';
 import { TrendingUp, TrendingDown, User, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 
+const LANDSCAPE_BG = '/assets/横屏背景图.png';
+const PORTRAIT_BG = '/assets/竖屏背景图.png';
+const ME_BANNER = '/assets/me_banner.png';
+
 export default function ProfilePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(storage.getCurrentUser());
@@ -21,6 +25,11 @@ export default function ProfilePage() {
   const [declining, setDeclining] = useState<string[]>([]);
 
   useEffect(() => {
+    const refreshUser = () => {
+      const latestUser = storage.getCurrentUser();
+      if (latestUser) setUser(latestUser);
+    };
+
     const currentUser = storage.getCurrentUser();
     if (!currentUser) {
       navigate('/');
@@ -82,9 +91,18 @@ export default function ProfilePage() {
 
     setImproving(improvingList.slice(0, 3));
     setDeclining(decliningList.slice(0, 3));
+
+    window.addEventListener('profile-updated', refreshUser);
+    window.addEventListener('focus', refreshUser);
+    return () => {
+      window.removeEventListener('profile-updated', refreshUser);
+      window.removeEventListener('focus', refreshUser);
+    };
   }, [navigate]);
 
   if (!user) return null;
+
+  const displayName = user.displayName?.trim() || user.username;
 
   const getGradeLabel = (grade: number) => {
     if (grade <= 6) return `小学${grade}年级`;
@@ -119,79 +137,106 @@ export default function ProfilePage() {
   const calendarCells: (number | null)[] = [];
   for (let i = 0; i < firstDayOfWeek; i++) calendarCells.push(null);
   for (let d = 1; d <= daysInMonth; d++) calendarCells.push(d);
+  const activeDays = Object.keys(dailyStatsMap).length;
+  const medalCount = Math.floor(totalQuestions / 20) + (overallAccuracy >= 80 ? 1 : 0);
 
   return (
-    <div className="size-full flex flex-col" style={{ background: '#EEF4FF' }}>
-      <div className="flex-1 overflow-auto p-4 md:p-6 pt-6">
-        <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
+    <div className="size-full flex flex-col relative overflow-hidden" style={{ background: '#EEF4FF' }}>
+      <picture className="absolute inset-0 block pointer-events-none">
+        <source media="(orientation: landscape)" srcSet={LANDSCAPE_BG} />
+        <img src={PORTRAIT_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      </picture>
+      <div className="absolute inset-0 pointer-events-none bg-white/10" />
 
-          {/* Profile card */}
-          <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6 relative">
-            {/* Settings gear – top right */}
+      <div className="relative z-10 flex-1 overflow-auto px-4 md:px-6 pt-5 pb-5">
+        <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
+          <section
+            className="relative overflow-hidden px-5 py-5 md:px-9 md:py-7 min-h-[132px] md:min-h-[156px]"
+            style={{ background: 'linear-gradient(180deg, #C4D1F8 0%, rgba(196, 209, 248, 0.58) 42%, rgba(196, 209, 248, 0) 100%)' }}
+          >
+            <div className="absolute inset-0 opacity-45 pointer-events-none bg-[linear-gradient(rgba(255,255,255,0.65)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.65)_1px,transparent_1px)] bg-[length:32px_32px]" />
+            <img
+              src={ME_BANNER}
+              alt=""
+              className="absolute right-12 md:right-[72px] top-1/2 -translate-y-1/2 h-[82%] md:h-[88%] max-w-[42%] object-contain object-right pointer-events-none"
+            />
             <button
               onClick={() => navigate('/settings')}
-              className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors"
+              className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-white/88 shadow-md hover:bg-white transition-colors"
               title="设置"
             >
-              <Settings size={20} className="text-gray-400 hover:text-gray-600" />
+              <Settings size={22} className="text-slate-600" />
             </button>
-            <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-md">
-                <User size={28} className="text-white" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span style={{ fontWeight: 700, fontSize: '18px' }}>{user.username}</span>
-                  <span className="px-2.5 py-0.5 bg-blue-100 text-blue-600 rounded-full" style={{ fontSize: '12px', fontWeight: 600 }}>
-                    {getGradeLabel(user.grade)}
-                  </span>
+
+            <div className="relative z-10 flex items-center gap-3 pr-12">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/82 flex items-center justify-center shadow-lg flex-shrink-0">
+                <div className="w-[52px] h-[52px] md:w-16 md:h-16 rounded-full bg-gradient-to-br from-[#7EA7FF] to-[#3E63F4] flex items-center justify-center overflow-hidden">
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={32} strokeWidth={2.4} className="text-white" />
+                  )}
                 </div>
-                <div className="text-sm text-gray-500 mt-0.5">{user.role === 'student' ? '学生' : '老师'}</div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="truncate text-slate-900" style={{ fontSize: '24px', fontWeight: 900, lineHeight: 1 }}>{displayName}</span>
+                  <span className="rounded-full bg-gradient-to-r from-[#7EA7FF] to-[#4D72F5] px-2.5 py-1 text-white whitespace-nowrap" style={{ fontSize: '12px', fontWeight: 800 }}>{getGradeLabel(user.grade)}</span>
+                </div>
+                <div className="mt-2 text-blue-700" style={{ fontSize: '15px', fontWeight: 800 }}>{user.role === 'student' ? '学生' : '老师'}</div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-white/72 px-3 py-1 text-blue-600 shadow-sm" style={{ fontSize: '12px', fontWeight: 800 }}>已签到</span>
+                  <span className="rounded-full bg-white/72 px-3 py-1 text-amber-500 shadow-sm" style={{ fontSize: '12px', fontWeight: 800 }}>{medalCount} 枚勋章</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Calendar + data */}
+          <div
+            className="bg-white rounded-[24px] shadow-lg overflow-hidden"
+            style={{ boxShadow: '0 18px 38px rgba(86, 114, 184, 0.12)' }}
+          >
+            <div className="grid grid-cols-3 px-4 py-4 border-b border-slate-100">
+              <div className="text-center">
+                <div className="text-orange-500" style={{ fontSize: '26px', fontWeight: 900, lineHeight: 1 }}>{totalQuestions}</div>
+                <div className="mt-1.5 text-slate-500" style={{ fontSize: '13px', fontWeight: 700 }}>累计做题</div>
+              </div>
+              <div className="text-center">
+                <div className="text-amber-400" style={{ fontSize: '26px', fontWeight: 900, lineHeight: 1 }}>{activeDays}</div>
+                <div className="mt-1.5 text-slate-500" style={{ fontSize: '13px', fontWeight: 700 }}>坚持学习</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lime-500" style={{ fontSize: '26px', fontWeight: 900, lineHeight: 1 }}>{overallAccuracy}%</div>
+                <div className="mt-1.5 text-slate-500" style={{ fontSize: '13px', fontWeight: 700 }}>正确率</div>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 md:gap-4">
-              <div className="text-center p-3 md:p-4 bg-blue-50 rounded-xl">
-                <div className="text-blue-600" style={{ fontWeight: 800, fontSize: '24px' }}>{totalQuestions}</div>
-                <div className="text-xs md:text-sm text-gray-600 mt-0.5">累计做题</div>
-              </div>
-              <div className="text-center p-3 md:p-4 bg-green-50 rounded-xl">
-                <div className="text-green-600" style={{ fontWeight: 800, fontSize: '24px' }}>{overallAccuracy}%</div>
-                <div className="text-xs md:text-sm text-gray-600 mt-0.5">正确率</div>
-              </div>
-              <div className="text-center p-3 md:p-4 bg-purple-50 rounded-xl">
-                <div className="text-purple-600" style={{ fontWeight: 800, fontSize: '24px' }}>{totalTime}</div>
-                <div className="text-xs md:text-sm text-gray-600 mt-0.5">学习时长(分)</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Calendar */}
-          <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6">
+            <div className="px-3 py-3">
             {/* Month header */}
-            <div className="flex items-center justify-between mb-4">
-              <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
-                <ChevronLeft size={18} className="text-gray-500" />
+            <div className="flex items-center justify-between mb-3">
+              <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl text-sky-400 hover:bg-sky-50 transition-colors">
+                <ChevronLeft size={22} />
               </button>
-              <h3 className="text-gray-800" style={{ fontWeight: 700, fontSize: '16px' }}>
-                {calendarYear}年 {MONTH_NAMES[calendarMonth - 1]}
+              <h3 className="text-slate-600" style={{ fontWeight: 700, fontSize: '20px' }}>
+                {MONTH_NAMES[calendarMonth - 1]}
               </h3>
-              <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
-                <ChevronRight size={18} className="text-gray-500" />
+              <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-300 hover:bg-slate-50 transition-colors">
+                <ChevronRight size={22} />
               </button>
             </div>
 
             {/* Day names */}
-            <div className="grid grid-cols-7 mb-2">
+            <div className="grid grid-cols-7 mb-2 rounded-xl bg-slate-100 py-1.5">
               {DAY_NAMES.map(name => (
-                <div key={name} className="text-center text-gray-400" style={{ fontSize: '12px', fontWeight: 600 }}>
+                <div key={name} className="text-center text-slate-500" style={{ fontSize: '13px', fontWeight: 700 }}>
                   {name}
                 </div>
               ))}
             </div>
 
             {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-y-2">
+            <div className="grid grid-cols-7 gap-y-2.5">
               {calendarCells.map((day, idx) => {
                 if (day === null) return <div key={`empty-${idx}`} />;
 
@@ -200,32 +245,33 @@ export default function ProfilePage() {
                 const hasData = stat && stat.count > 0;
 
                 return (
-                  <div key={key} className="flex flex-col items-center gap-0.5 py-1">
+                  <div key={key} className="flex flex-col items-center justify-start min-h-[48px]">
                     {/* Date circle */}
                     <div
-                      className={`w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center transition-colors ${
-                        hasData ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-500'
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                        hasData ? 'bg-[#32AFE7] text-white shadow-sm' : 'text-slate-900'
                       }`}
-                      style={{ fontSize: '13px', fontWeight: hasData ? 700 : 400 }}
+                      style={{ fontSize: '16px', fontWeight: hasData ? 800 : 500 }}
                     >
                       {day}
                     </div>
                     {/* Stats below */}
                     {hasData ? (
                       <>
-                        <div className="text-blue-600" style={{ fontSize: '10px', fontWeight: 600, lineHeight: 1 }}>
+                        <div className="text-[#32AFE7] mt-0.5" style={{ fontSize: '11px', fontWeight: 800, lineHeight: 1 }}>
                           {stat.count}题
                         </div>
-                        <div className="text-green-600" style={{ fontSize: '9px', lineHeight: 1 }}>
+                        <div className="text-green-500" style={{ fontSize: '10px', lineHeight: 1, fontWeight: 800 }}>
                           {stat.accuracy}%
                         </div>
                       </>
                     ) : (
-                      <div style={{ height: '20px' }} />
+                      <div style={{ height: '16px' }} />
                     )}
                   </div>
                 );
               })}
+            </div>
             </div>
           </div>
 
@@ -269,7 +315,9 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <BottomNav />
+      <div className="relative z-10 flex-shrink-0">
+        <BottomNav />
+      </div>
     </div>
   );
 }

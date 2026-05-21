@@ -52,3 +52,9 @@
 .page-exit-back {
   animation: slideOutToRight 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+/* Add subtle depth to bottom divider borders across the app. */
+[class~="border-b"],
+[class*="border-b-"] {
+  box-shadow: 0 3px 6px rgba(15, 23, 42, 0.08);
+}

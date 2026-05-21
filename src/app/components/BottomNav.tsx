@@ -4,10 +4,10 @@ import { storage } from '../utils/storage';
 import { transitionStore } from '../utils/transitionStore';
 
 const STUDENT_NAV = [
-  { id: 'dashboard', icon: Home, label: '首页', path: '/dashboard' },
-  { id: 'wrong-questions', icon: FileText, label: '错题本', path: '/wrong-questions' },
-  { id: 'knowledge-map', icon: Map, label: '知识图谱', path: '/knowledge-map' },
-  { id: 'profile', icon: User, label: '个人中心', path: '/profile' },
+  { id: 'dashboard', icon: Home, label: '首页', path: '/dashboard', image: '/assets/home.png', activeImage: '/assets/home_c.png' },
+  { id: 'wrong-questions', icon: FileText, label: '错题本', path: '/wrong-questions', image: '/assets/errorbook.png', activeImage: '/assets/errorbook_c.png' },
+  { id: 'knowledge-map', icon: Map, label: '知识图谱', path: '/knowledge-map', image: '/assets/knowledgemap.png', activeImage: '/assets/knowledgemap_c.png' },
+  { id: 'profile', icon: User, label: '个人中心', path: '/profile', image: '/assets/me.png', activeImage: '/assets/me_c.png' },
 ];
 
 export function BottomNav() {
@@ -36,17 +36,29 @@ export function BottomNav() {
     <nav className="bg-white border-t border-gray-100 px-2 py-2 flex justify-around flex-shrink-0 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]">
       {NAV_ITEMS.map((item, idx) => {
         const Icon = item.icon;
-        const isActive = location.pathname === item.path;
+        const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
         return (
           <button
             key={item.id}
             onClick={() => handleNav(idx, item.path)}
-            className="flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl transition-colors"
+            className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl transition-all ${isActive ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
             style={{ minWidth: '60px' }}
           >
-            <Icon size={22} className={isActive ? 'text-blue-500' : 'text-gray-400'} />
+            {'image' in item && item.image ? (
+              <img
+                src={isActive && 'activeImage' in item && item.activeImage ? item.activeImage : item.image}
+                alt=""
+                className={`w-7 h-7 object-contain transition-all ${isActive ? 'scale-110' : 'opacity-75'}`}
+              />
+            ) : (
+              <Icon
+                size={22}
+                strokeWidth={isActive ? 2.8 : 2}
+                className={isActive ? 'text-blue-500 scale-110' : 'text-gray-400'}
+              />
+            )}
             <span
-              style={{ fontSize: '11px', fontWeight: isActive ? 600 : 400 }}
+              style={{ fontSize: '11px', fontWeight: isActive ? 700 : 400 }}
               className={isActive ? 'text-blue-500' : 'text-gray-400'}
             >
               {item.label}

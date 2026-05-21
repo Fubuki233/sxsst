@@ -2,9 +2,15 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { getQuestionsByChapter, SUBJECTS, CHAPTERS } from '../utils/questions';
 import { storage, Question } from '../utils/storage';
-import { ArrowLeft, CheckCircle, XCircle, Lightbulb, AlertCircle, Info, Award, TrendingUp, Target, Lock } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Lightbulb, AlertCircle, Info, Award, TrendingUp, Lock } from 'lucide-react';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
+
+const nextDifficultyMap: Record<Difficulty, Difficulty | null> = {
+  easy: 'medium',
+  medium: 'hard',
+  hard: null
+};
 
 export default function PracticePage() {
   const { subjectId, chapterId } = useParams();
@@ -22,6 +28,7 @@ export default function PracticePage() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [askedQuestions, setAskedQuestions] = useState<string[]>([]);
   const [questionNumber, setQuestionNumber] = useState(1);
+  const [practiceRound, setPracticeRound] = useState(0);
   const [showReport, setShowReport] = useState(false);
   const [sessionStats, setSessionStats] = useState({ total: 0, correct: 0, questions: [] as Question[], wrongs: [] as { q: Question; userAnswer: string }[] });
 
@@ -31,7 +38,7 @@ export default function PracticePage() {
 
   useEffect(() => {
     loadNextQuestion();
-  }, [currentDifficulty, questionNumber]);
+  }, [currentDifficulty, questionNumber, practiceRound]);
 
   const loadNextQuestion = () => {
     if (!subjectId || !chapterId) return;
@@ -131,6 +138,35 @@ export default function PracticePage() {
     setQuestionNumber(prev => prev + 1);
   };
 
+  const handleContinuePractice = () => {
+    const stats = difficultyStats[currentDifficulty];
+    const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+    const nextDifficulty = nextDifficultyMap[currentDifficulty];
+    const shouldUpgrade = Boolean(nextDifficulty && stats.total >= 3 && accuracy >= 80);
+    const targetDifficulty = shouldUpgrade ? nextDifficulty! : currentDifficulty;
+
+    setCurrentQuestion(null);
+    setSelectedAnswer('');
+    setSubmitted(false);
+    setShowResult(false);
+    setShowReport(false);
+    setSessionStats({ total: 0, correct: 0, questions: [], wrongs: [] });
+    setAskedQuestions([]);
+    setQuestionNumber(1);
+
+    if (shouldUpgrade) {
+      setCurrentDifficulty(targetDifficulty);
+      setUnlockedDifficulties(prev => prev.includes(targetDifficulty) ? prev : [...prev, targetDifficulty]);
+    } else {
+      setDifficultyStats(prev => ({
+        ...prev,
+        [currentDifficulty]: { total: 0, correct: 0 }
+      }));
+    }
+
+    setPracticeRound(prev => prev + 1);
+  };
+
   if (!subject || !chapter) return null;
 
   const difficulties: { level: Difficulty; label: string; color: string }[] = [
@@ -141,6 +177,10 @@ export default function PracticePage() {
 
   if (showReport) {
     const accuracy = sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0;
+    const currentLevelStats = difficultyStats[currentDifficulty];
+    const currentLevelAccuracy = currentLevelStats.total > 0 ? Math.round((currentLevelStats.correct / currentLevelStats.total) * 100) : 0;
+    const nextDifficulty = nextDifficultyMap[currentDifficulty];
+    const canContinueToNextDifficulty = Boolean(nextDifficulty && currentLevelStats.total >= 3 && currentLevelAccuracy >= 80);
     const weakPoints = new Map<string, { total: number; correct: number }>();
 
     const answers = storage.getAnswers().slice(-sessionStats.total);
@@ -207,16 +247,17 @@ export default function PracticePage() {
 
               {weakPointsList.length > 0 && (
                 <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg mb-4 text-left">
-                  <div className="flex items-center gap-2 text-orange-700 mb-2">
-                    <Target size={20} />
-                    <span>发现薄弱知识点：</span>
-                  </div>
-                  <div className="space-y-1">
-                    {weakPointsList.slice(0, 3).map(point => (
-                      <div key={point.name} className="text-sm text-orange-600">
-                        • {point.name} (正确率 {point.accuracy}%)
-                      </div>
-                    ))}
+                  <div className="min-w-0">
+                    <div className="text-orange-700 mb-2">
+                      <span>发现薄弱知识点：</span>
+                    </div>
+                    <div className="space-y-1">
+                      {weakPointsList.slice(0, 3).map(point => (
+                        <div key={point.name} className="text-sm text-orange-600">
+                          • {point.name} (正确率 {point.accuracy}%)
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -259,20 +300,11 @@ export default function PracticePage() {
 
               <div className="flex flex-col md:flex-row gap-3">
                 <button
-                  onClick={() => {
-                    setShowReport(false);
-                    setQuestionNumber(1);
-                    setSessionStats({ total: 0, correct: 0, questions: [], wrongs: [] });
-                    setAskedQuestions([]);
-                    setCurrentDifficulty('easy');
-                    setDifficultyStats({ easy: { total: 0, correct: 0 }, medium: { total: 0, correct: 0 }, hard: { total: 0, correct: 0 } });
-                    setUnlockedDifficulties(['easy']);
-                    loadNextQuestion();
-                  }}
+                  onClick={handleContinuePractice}
                   className="flex-1 bg-blue-500 text-white py-3 md:py-4 rounded-xl hover:bg-blue-600 transition-colors"
                   style={{ fontSize: '16px', fontWeight: 600 }}
                 >
-                  继续练习
+                  {canContinueToNextDifficulty ? '进入下一难度' : '重新做本难度'}
                 </button>
                 {weakPointsList.length > 0 && (
                   <button

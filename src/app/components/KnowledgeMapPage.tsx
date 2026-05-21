@@ -1,29 +1,42 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { BookOpen, CircleDot, Lightbulb, Star } from 'lucide-react';
 import { SUBJECTS, getAllChapters } from '../utils/questions';
 import { storage } from '../utils/storage';
 import { BottomNav } from './BottomNav';
 
-// ──────────────── Types ────────────────
-interface ChapterNode {
-  id: string; name: string; x: number; y: number; radius: number;
-  kps: { name: string; angle: number; orbitR: number; radius: number; accuracy?: number }[];
-}
+const ASSET = '/assets/';
+const LANDSCAPE_BG = `${ASSET}横屏背景图.png`;
+const PORTRAIT_BG = `${ASSET}竖屏背景图.png`;
 
-const SUBJECT_COLORS: Record<string, string> = {
-  math: '#3B82F6', english: '#10B981', physics: '#8B5CF6', chemistry: '#F59E0B',
+const SUBJECT_TAB_ICONS: Record<string, string> = {
+  math: `${ASSET}math.png`,
+  english: `${ASSET}eng.png`,
+  physics: `${ASSET}phy.png`,
+  chemistry: `${ASSET}chem.png`,
 };
-const CHAPTER_R = 44;
-const KP_R = 28;
-const MIN_ORBIT = 86;
-const MAX_ORBIT = 116;
 
-function getColor(acc?: number): string {
-  if (acc === undefined) return '#9CA3AF';
-  if (acc < 60) return '#EF4444';
-  if (acc < 85) return '#F59E0B';
-  return '#10B981';
-}
+const SUBJECT_BANNERS: Record<string, string> = {
+  math: `${ASSET}math_banner.png`,
+  english: `${ASSET}eng_banner.png`,
+  physics: `${ASSET}phy_banner.png`,
+  chemistry: `${ASSET}chem_banner.png`,
+};
+
+const SUBJECT_COLORS: Record<string, { main: string; soft: string; deep: string; leaf: string; warm: string }> = {
+  math: { main: '#5E7CF4', soft: '#EEF4FF', deep: '#18367E', leaf: '#86A3FF', warm: '#FF6335' },
+  english: { main: '#33B982', soft: '#ECFBF4', deep: '#0F6F50', leaf: '#73D8AB', warm: '#32B77D' },
+  physics: { main: '#9B5CF6', soft: '#F4EEFF', deep: '#4A2B86', leaf: '#C08BFF', warm: '#8B5CF6' },
+  chemistry: { main: '#5F8DF7', soft: '#EEF6FF', deep: '#244078', leaf: '#93B7FF', warm: '#4F8CF7' },
+};
+
+const SUBJECT_COPY: Record<string, string> = {
+  math: '系统掌握知识脉络，提升学习效率',
+  english: '串联词汇语法阅读，稳步提升表达能力',
+  physics: '理清概念与规律，建立科学思维',
+  chemistry: '掌握物质变化规律，理解实验与反应',
+};
+
 function getLabel(acc?: number): string {
   if (acc === undefined) return '未练习';
   if (acc < 60) return '薄弱';
@@ -31,82 +44,43 @@ function getLabel(acc?: number): string {
   return '熟练';
 }
 
-// ── Circular layout: ring radius adapts to container size ──
-function layoutCircular(kpCounts: number[], w: number, h: number): { x: number; y: number; orbitR: number; ringR: number }[] {
-  const n = kpCounts.length;
-  const orbitRs = kpCounts.map(kc => MIN_ORBIT + Math.min((kc - 2) * 7, MAX_ORBIT - MIN_ORBIT));
-  const maxOrbit = Math.max(...orbitRs);
-  const neededEdge = maxOrbit + KP_R + 30;
+function getStatusColor(acc?: number, colors = SUBJECT_COLORS.math): string {
+  if (acc === undefined) return '#A6B1C5';
+  if (acc < 60) return '#E4544B';
+  if (acc < 85) return '#F59E0B';
+  return colors.warm;
+}
 
-  // Minimum ring radius to avoid overlap at equal angles
-  const minRingR = n <= 1 ? 0 : Math.max(neededEdge / Math.sin(Math.PI / n), neededEdge * 1.1);
+function getPointSymbol(name: string): string {
+  if (name.includes('加')) return '+';
+  if (name.includes('减') || name.includes('退位')) return '-';
+  if (name.includes('乘')) return '×';
+  if (name.includes('除')) return '÷';
+  if (name.includes('面积') || name.includes('体积')) return '□';
+  if (name.includes('周长')) return '⌒';
+  if (name.includes('图形')) return '△';
+  if (name.includes('单词')) return 'A';
+  if (name.includes('语法')) return 'G';
+  if (name.includes('阅读')) return 'R';
+  return '→';
+}
 
-  // Maximum ring radius constrained by container (centered at 0,0)
-  // We need: ringR + maxOrbit + CHAPTER_R <= min(w/2, h/2) * scaleFactor
-  const containerMax = Math.min(w, h) / 2 * 0.85;
+function getChapterMastery(points: string[], stats: Record<string, number>): number {
+  if (points.length === 0) return 0;
+  const total = points.reduce((sum, kp) => sum + (stats[kp] ?? 0), 0);
+  return Math.round(total / points.length);
+}
 
-  // Scale to fit: start from minRingR, but don't exceed container
-  const ringR = Math.min(Math.max(minRingR, containerMax * 0.6), containerMax - 20);
-
-  // Also scale orbitR proportionally so KP balls stay within container
-  const scale = Math.min(1, ringR / (minRingR || 1));
-
-  // Initial equal angles (start from top)
-  const angles = kpCounts.map((_, i) => (2 * Math.PI / n) * i - Math.PI / 2);
-
-  // Fine-tune angles
-  if (n > 2) {
-    for (let iter = 0; iter < 40; iter++) {
-      for (let i = 0; i < n; i++) {
-        let torque = 0;
-        const prev = (i - 1 + n) % n;
-        const next = (i + 1) % n;
-        for (const j of [prev, next]) {
-          let da = angles[i] - angles[j];
-          if (da > Math.PI) da -= 2 * Math.PI;
-          if (da < -Math.PI) da += 2 * Math.PI;
-          const arcDist = Math.abs(da) * ringR;
-          const adjOrbitI = orbitRs[i] * scale;
-          const adjOrbitJ = orbitRs[j] * scale;
-          const minArc = adjOrbitI + adjOrbitJ + KP_R * 2 + 40;
-          if (arcDist < minArc) {
-            torque += (minArc - arcDist) / minArc * 0.2 * Math.sign(da);
-          }
-        }
-        const idealA = (2 * Math.PI / n) * i - Math.PI / 2;
-        let daIdeal = idealA - angles[i];
-        if (daIdeal > Math.PI) daIdeal -= 2 * Math.PI;
-        if (daIdeal < -Math.PI) daIdeal += 2 * Math.PI;
-        torque += daIdeal * 0.03;
-        angles[i] += torque;
-      }
-    }
-  }
-
-  return angles.map((a, i) => ({
-    x: Math.cos(a) * ringR,
-    y: Math.sin(a) * ringR,
-    orbitR: orbitRs[i] * scale,
-    ringR,
-  }));
+function getChapterAdvice(mastery: number): string {
+  if (mastery >= 85) return '太棒了！继续保持，挑战更高难度题目吧！';
+  if (mastery >= 60) return '建议：继续巩固易错点，把正确率稳定下来';
+  return '建议：加强基础训练，先把核心知识点练熟';
 }
 
 export default function KnowledgeMapPage() {
   const navigate = useNavigate();
-  const containerRef = useRef<HTMLDivElement>(null);
   const [selectedSubject, setSelectedSubject] = useState('math');
   const [knowledgeStats, setKnowledgeStats] = useState<Record<string, number>>({});
-  const [nodes, setNodes] = useState<ChapterNode[]>([]);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [dim, setDim] = useState({ w: 800, h: 500 });
-  const isDraggingRef = useRef(false);
-  const dragStartRef = useRef({ mx: 0, my: 0, px: 0, py: 0 });
-  const dragTotalRef = useRef(0);
-  const zoomStateRef = useRef(1);
-
-  // Keep ref in sync for pinch handler
-  useEffect(() => { zoomStateRef.current = zoom; }, [zoom]);
 
   useEffect(() => {
     const stats = storage.getKnowledgeStats();
@@ -115,275 +89,210 @@ export default function KnowledgeMapPage() {
     setKnowledgeStats(m);
   }, []);
 
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(entries => {
-      const { width, height } = entries[0].contentRect;
-      setDim({ w: Math.round(width), h: Math.round(height) });
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const chs = getAllChapters()[selectedSubject] || [];
-    if (chs.length === 0) { setNodes([]); return; }
-    const positions = layoutCircular(chs.map(c => c.knowledgePoints.length), dim.w, dim.h);
-    setNodes(chs.map((ch, i) => {
-      const p = positions[i];
-      const nkp = ch.knowledgePoints.length;
-      return {
-        id: ch.id, name: ch.name, x: p.x, y: p.y, radius: CHAPTER_R,
-        kps: ch.knowledgePoints.map((kp, j) => ({
-          name: kp,
-          angle: (2 * Math.PI / nkp) * j + (Math.PI / 4) * i,
-          orbitR: p.orbitR,
-          radius: KP_R,
-          accuracy: knowledgeStats[kp],
-        })),
-      };
-    }));
-  }, [selectedSubject, knowledgeStats, dim]);
-
-  // ── Pinch zoom state (refs to avoid re-renders during pinch) ──
-  const pinchDistRef = useRef(0);
-  const pinchStartZoomRef = useRef(1);
-
-  // ── Zoom via wheel / pinch ──
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const wheel = (e: WheelEvent) => {
-      // Ctrl+wheel on some trackpads triggers gesture — ignore if ctrlKey
-      if (e.ctrlKey) { e.preventDefault(); return; }
-      e.preventDefault();
-      const factor = e.deltaY < 0 ? 1.08 : 1 / 1.08;
-      setZoom(z => {
-        const next = z * factor;
-        return Math.min(2.5, Math.max(0.35, next));
-      });
-    };
-    // Pinch gesture
-    const touchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        pinchDistRef.current = Math.sqrt(dx * dx + dy * dy);
-        pinchStartZoomRef.current = zoomStateRef.current;
-      }
-    };
-    const touchMovePinch = (e: TouchEvent) => {
-      if (e.touches.length === 2 && pinchDistRef.current > 0) {
-        e.preventDefault();
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const scale = dist / pinchDistRef.current;
-        const next = pinchStartZoomRef.current * scale;
-        setZoom(Math.min(2.5, Math.max(0.35, next)));
-      }
-    };
-    const touchEndPinch = (e: TouchEvent) => {
-      if (e.touches.length < 2) pinchDistRef.current = 0;
-    };
-    el.addEventListener('wheel', wheel, { passive: false });
-    el.addEventListener('touchstart', touchStart, { passive: false });
-    el.addEventListener('touchmove', touchMovePinch, { passive: false });
-    el.addEventListener('touchend', touchEndPinch);
-    return () => {
-      el.removeEventListener('wheel', wheel);
-      el.removeEventListener('touchstart', touchStart);
-      el.removeEventListener('touchmove', touchMovePinch);
-      el.removeEventListener('touchend', touchEndPinch);
-    };
-  }, []);
-
-  // ── Pan: use refs + one-shot listeners for both mouse and touch ──
-  useEffect(() => {
-    const move = (clientX: number, clientY: number) => {
-      if (!isDraggingRef.current) return;
-      const dx = clientX - dragStartRef.current.mx;
-      const dy = clientY - dragStartRef.current.my;
-      dragTotalRef.current += Math.abs(dx) + Math.abs(dy);
-      setPan({ x: dragStartRef.current.px + dx, y: dragStartRef.current.py + dy });
-    };
-    const onMouseMove = (e: MouseEvent) => move(e.clientX, e.clientY);
-    const onTouchMove = (e: TouchEvent) => {
-      if (!isDraggingRef.current) return;
-      e.preventDefault();
-      if (e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY);
-    };
-    const up = () => {
-      isDraggingRef.current = false;
-      setTimeout(() => { dragTotalRef.current = 0; }, 100);
-    };
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', up);
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    window.addEventListener('touchend', up);
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', up);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', up);
-    };
-  }, []);
-
-  const startDrag = (clientX: number, clientY: number) => {
-    isDraggingRef.current = true;
-    dragTotalRef.current = 0;
-    dragStartRef.current = { mx: clientX, my: clientY, px: pan.x, py: pan.y };
-  };
-
-  const onPanDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    const c = 'touches' in e ? e.touches[0] : e;
-    startDrag(c.clientX, c.clientY);
-  }, [pan]);
-
-  const onBallDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
-    // Don't e.preventDefault() — it would block pinch-zoom gestures on mobile
-    const c = 'touches' in e ? e.touches[0] : e;
-    startDrag(c.clientX, c.clientY);
-  }, [pan]);
-
-  // ── Click handlers ──
-  const handleChapterClick = () => {
-    if (dragTotalRef.current < 5) navigate(`/subject/${selectedSubject}`);
-    dragTotalRef.current = 0;
-  };
-  const handleKpClick = (kp: string) => {
-    if (dragTotalRef.current < 5) navigate(`/graded-practice/${encodeURIComponent(kp)}`);
-    dragTotalRef.current = 0;
-  };
-
-  const sc = SUBJECT_COLORS[selectedSubject] || '#3B82F6';
-
-  // Trunk links: adjacent in ring order (first→last close loop)
-  const trunkLinks: { a: ChapterNode; b: ChapterNode }[] = [];
-  for (let i = 0; i < nodes.length; i++) {
-    const j = (i + 1) % nodes.length;
-    if (i < j || nodes.length <= 2) trunkLinks.push({ a: nodes[i], b: nodes[j] });
-  }
-
-  const tx = pan.x + dim.w / 2;
-  const ty = pan.y + dim.h / 2;
+  const chapters = useMemo(() => getAllChapters()[selectedSubject] || [], [selectedSubject]);
+  const selected = SUBJECTS.find(s => s.id === selectedSubject) || SUBJECTS[0];
+  const colors = SUBJECT_COLORS[selectedSubject] || SUBJECT_COLORS.math;
 
   return (
-    <div className="size-full flex flex-col" style={{ background: '#EEF4FF' }}>
-      {/* Tabs */}
-      <div className="flex-shrink-0 px-4 pt-4 pb-2">
-        <div className="flex gap-2 justify-center max-w-lg mx-auto">
-          {SUBJECTS.map(s => (
-            <button key={s.id} onClick={() => { setSelectedSubject(s.id); setPan({ x: 0, y: 0 }); setZoom(1); }}
-              className="px-5 py-2 rounded-xl text-sm transition-all"
-              style={{ backgroundColor: selectedSubject === s.id ? SUBJECT_COLORS[s.id] : '#fff', color: selectedSubject === s.id ? '#fff' : '#6b7280', fontWeight: selectedSubject === s.id ? 600 : 400 }}>
-              {s.name}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="size-full flex flex-col relative overflow-hidden" style={{ background: '#EEF4FF' }}>
+      <picture className="absolute inset-0 block pointer-events-none">
+        <source media="(orientation: landscape)" srcSet={LANDSCAPE_BG} />
+        <img src={PORTRAIT_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      </picture>
+      <div className="absolute inset-0 pointer-events-none bg-white/10" />
 
-      {/* Canvas */}
-      <div ref={containerRef} className="flex-1 overflow-hidden relative select-none"
-        style={{ cursor: 'grab' }}
-        onMouseDown={onPanDown} onTouchStart={onPanDown}>
+      <div className="relative z-10 flex-1 overflow-auto px-3 md:px-8 pt-4 md:pt-6 pb-6">
+        <div className="max-w-6xl mx-auto space-y-5 md:space-y-7">
+          <div className="max-w-4xl mx-auto bg-white/90 rounded-[28px] md:rounded-full shadow-lg px-2 py-2.5 md:px-3 md:py-3 grid grid-cols-4 gap-1.5 md:gap-4 border border-white">
+            {SUBJECTS.map(subject => {
+              const active = selectedSubject === subject.id;
+              const subjectColor = SUBJECT_COLORS[subject.id] || SUBJECT_COLORS.math;
 
-        {/* Zoom indicator */}
-        <div className="absolute bottom-4 right-4 z-40 bg-white/80 backdrop-blur rounded-lg px-2 py-1 text-xs text-gray-400 select-none">
-          {Math.round(zoom * 100)}%
-        </div>
-
-        <div className="absolute inset-0"
-          style={{
-            transform: `translate(${tx}px, ${ty}px) scale(${zoom})`,
-            transformOrigin: '0 0',
-          }}>
-          {/* SVG lines – use viewBox centered on (0,0) with enough space for all nodes */}
-          <svg className="absolute pointer-events-none"
-            style={{ left: -dim.w / 2, top: -dim.h / 2, width: dim.w, height: dim.h }}
-            viewBox={`${-dim.w / 2} ${-dim.h / 2} ${dim.w} ${dim.h}`}>
-            {/* Trunk arcs */}
-            {trunkLinks.map(({ a, b }, i) => {
-              const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-              const dx = b.x - a.x, dy = b.y - a.y;
-              const d = Math.sqrt(dx * dx + dy * dy) || 1;
-              // Outward bulge
-              const dist = Math.sqrt(mx * mx + my * my) || 1;
-              const nx = mx / dist, ny = my / dist;
-              const bulge = d * 0.25;
               return (
-                <path key={`trunk-${i}`}
-                  d={`M${a.x},${a.y} Q${mx + nx * bulge},${my + ny * bulge} ${b.x},${b.y}`}
-                  stroke={sc} strokeOpacity={0.5} strokeWidth={3.5} fill="none" strokeLinecap="round" />
+                <button
+                  key={subject.id}
+                  onClick={() => setSelectedSubject(subject.id)}
+                  className={`min-w-0 flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-2.5 rounded-2xl md:rounded-full px-1 md:px-4 py-2 md:py-2.5 transition-all ${
+                    active ? 'text-white' : 'text-slate-700 hover:bg-blue-50'
+                  }`}
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 'clamp(11px, 3vw, 17px)',
+                    background: active ? `linear-gradient(180deg, ${subjectColor.leaf} 0%, ${subjectColor.main} 100%)` : 'transparent',
+                    boxShadow: active ? '0 8px 14px rgba(54, 100, 229, 0.28)' : 'none',
+                  }}
+                >
+                  <img src={SUBJECT_TAB_ICONS[subject.id]} alt="" className="w-6 h-6 md:w-8 md:h-8 object-contain flex-shrink-0" />
+                  <span className="leading-none truncate max-w-full">{subject.name}</span>
+                </button>
               );
             })}
-            {/* KP lines */}
-            {nodes.map(ch => ch.kps.map(kp => {
-              const kx = ch.x + Math.cos(kp.angle) * kp.orbitR;
-              const ky = ch.y + Math.sin(kp.angle) * kp.orbitR;
-              const mx = (ch.x + kx) / 2 + (ky - ch.y) * 0.15;
-              const my = (ch.y + ky) / 2 + (ch.x - kx) * 0.15;
-              return (
-                <path key={`${ch.id}-${kp.name}`}
-                  d={`M${ch.x},${ch.y} Q${mx},${my} ${kx},${ky}`}
-                  stroke={getColor(kp.accuracy)} strokeOpacity={0.3} strokeWidth={1.5} fill="none" />
-              );
-            }))}
-          </svg>
+          </div>
 
-          {/* Balls — positioned relative to (tx, ty) */}
-          {nodes.map(ch => (
-            <div key={ch.id}>
-              {/* Chapter */}
-              <button className="absolute rounded-full flex flex-col items-center justify-center shadow-xl hover:shadow-2xl cursor-pointer select-none z-10"
-                style={{
-                  left: ch.x - ch.radius, top: ch.y - ch.radius,
-                  width: ch.radius * 2, height: ch.radius * 2,
-                  background: `radial-gradient(circle at 35% 25%, ${sc}ee, ${sc}88 60%, ${sc}cc)`,
-                  color: '#fff', border: `2.5px solid ${sc}55`,
-                }}
-                onMouseDown={onBallDown} onTouchStart={onBallDown}
-                onClick={handleChapterClick}>
-                <span className="text-xs md:text-sm font-bold text-center leading-tight px-2"
-                  style={{ textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>{ch.name}</span>
-              </button>
-              {/* KP balls */}
-              {ch.kps.map(kp => {
-                const kx = ch.x + Math.cos(kp.angle) * kp.orbitR;
-                const ky = ch.y + Math.sin(kp.angle) * kp.orbitR;
-                const kc = getColor(kp.accuracy);
+          <div className="relative overflow-visible">
+            <section
+              className="relative overflow-hidden px-5 py-5 md:px-9 md:py-7 min-h-[156px] md:min-h-[178px]"
+              style={{ background: 'linear-gradient(180deg, #C4D1F8 0%, rgba(196, 209, 248, 0.58) 42%, rgba(196, 209, 248, 0) 100%)' }}
+            >
+              <div className="absolute inset-0 opacity-45 pointer-events-none bg-[linear-gradient(rgba(255,255,255,0.65)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.65)_1px,transparent_1px)] bg-[length:32px_32px]" />
+              <div className="relative z-10 max-w-[58%] min-h-[116px] md:min-h-[128px] flex flex-col justify-center">
+                <h1 className="text-slate-900" style={{ fontWeight: 900, fontSize: 'clamp(34px, 7vw, 62px)', lineHeight: 1.02, letterSpacing: '0.08em' }}>
+                  {selected.name}
+                </h1>
+                <div className="mt-2 text-blue-500" style={{ fontWeight: 900, fontSize: 'clamp(22px, 4.6vw, 38px)', lineHeight: 1.05, letterSpacing: '0.12em' }}>知识图谱</div>
+                <div className="mt-3 h-1 w-12 rounded-full" style={{ background: colors.deep }} />
+                <p className="mt-3 whitespace-nowrap text-slate-600" style={{ fontWeight: 700, fontSize: 'clamp(12px, 2.2vw, 16px)', lineHeight: 1.25 }}>
+                  {SUBJECT_COPY[selectedSubject]}
+                </p>
+              </div>
+              <img
+                src={SUBJECT_BANNERS[selectedSubject]}
+                alt=""
+                className="absolute right-0 md:right-5 top-1/2 -translate-y-1/2 h-[86%] md:h-[92%] max-w-[52%] object-contain object-right pointer-events-none"
+              />
+            </section>
+
+            <div className="relative z-10 space-y-8 px-3 pb-7 md:space-y-10 md:px-8 md:pb-10">
+              <div
+                className="absolute left-8 top-0 bottom-8 w-1 -translate-x-1/2 rounded-full opacity-45 sm:left-1/2"
+                style={{ background: `linear-gradient(180deg, ${colors.leaf}, ${colors.main} 45%, ${colors.leaf})` }}
+              />
+              {chapters.map((chapter, index) => {
+                const left = index % 2 === 0;
+                const mastery = getChapterMastery(chapter.knowledgePoints, knowledgeStats);
+                const hasChapterData = chapter.knowledgePoints.some(kp => knowledgeStats[kp] !== undefined);
+                const accent = mastery >= 85 ? '#35B779' : mastery > 0 ? '#6A84F6' : '#A6B1C5';
+
                 return (
-                  <button key={kp.name}
-                    className="absolute rounded-full flex flex-col items-center justify-center shadow-md hover:shadow-lg hover:scale-110 transition-all cursor-pointer select-none group z-20"
-                    style={{
-                      left: kx - kp.radius, top: ky - kp.radius,
-                      width: kp.radius * 2, height: kp.radius * 2,
-                      background: `radial-gradient(circle at 35% 30%, ${kc}ee, ${kc})`,
-                      color: '#fff', border: `1.5px solid ${kc}55`,
-                    }}
-                    onMouseDown={onBallDown} onTouchStart={onBallDown}
-                    onClick={() => handleKpClick(kp.name)}>
-                    <span className="text-[11px] font-bold leading-tight text-center px-1"
-                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
-                      {kp.name}
-                    </span>
-                    {kp.accuracy !== undefined && (
-                      <span className="text-[9px] opacity-85 leading-none">{kp.accuracy}%</span>
-                    )}
-                    {/* Tooltip always visible to show full name */}
-                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap bg-gray-900 text-white text-[10px] px-2.5 py-1 rounded-lg z-50 shadow-lg transition-opacity">
-                      {kp.name} · {getLabel(kp.accuracy)}{kp.accuracy !== undefined ? ` ${kp.accuracy}%` : ''}
+                  <section key={chapter.id} className="relative pl-14 sm:pl-0">
+                    <div
+                      className="hidden sm:block absolute top-11 h-1 rounded-full opacity-45"
+                      style={{
+                        background: accent,
+                        left: left ? '18%' : '50%',
+                        right: left ? '50%' : '18%',
+                      }}
+                    />
+                    <div
+                      className="absolute left-5 top-7 z-20 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border-[6px] border-white shadow-md sm:left-1/2"
+                      style={{ background: accent }}
+                    >
+                      <CircleDot size={15} className="text-white" />
                     </div>
-                  </button>
+
+                    <div className={`relative sm:w-[43%] ${left ? 'sm:mr-auto' : 'sm:ml-auto'}`}>
+                      <div
+                        className="overflow-hidden rounded-[30px] border-2 bg-white/[0.9] shadow-lg"
+                        style={{
+                          borderColor: '#C9D7FF',
+                          boxShadow: '0 18px 34px rgba(58, 84, 140, 0.12), 0 0 0 1px rgba(255,255,255,0.82), inset 0 1px 0 rgba(255,255,255,0.94)',
+                        }}
+                      >
+                        <button
+                          onClick={() => navigate(`/subject/${selectedSubject}`)}
+                          className="w-full px-4 md:px-5 py-3.5 text-left transition-colors"
+                          style={{
+                            background: 'linear-gradient(90deg, rgba(196, 209, 248, 0.92) 0%, rgba(196, 209, 248, 0.52) 58%, rgba(196, 209, 248, 0.12) 100%)',
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className="flex h-11 w-11 items-center justify-center rounded-full text-white shadow-md"
+                              style={{ background: `linear-gradient(180deg, ${colors.leaf} 0%, ${colors.main} 100%)` }}
+                            >
+                              <BookOpen size={26} />
+                            </span>
+                            <span className="min-w-0 flex-1 truncate text-slate-800" style={{ fontWeight: 900, fontSize: 'clamp(20px, 4.8vw, 29px)' }}>{chapter.name}</span>
+                            <span
+                              className="rounded-full px-3 py-1 text-sm md:text-base whitespace-nowrap"
+                              style={{ background: `${colors.main}12`, color: colors.main, fontWeight: 900 }}
+                            >
+                              掌握度 {mastery}%
+                            </span>
+                          </div>
+                        </button>
+
+                        <div className="bg-white/[0.9] p-3 md:p-4">
+                          <div
+                            className="rounded-[24px] border bg-white/[0.72] p-3 md:p-4"
+                            style={{
+                              borderColor: '#D6E0FF',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.92)',
+                            }}
+                          >
+                          <div className="grid grid-cols-1 min-[500px]:grid-cols-2 gap-3 md:gap-4">
+                            {chapter.knowledgePoints.map(kp => {
+                              const accuracy = knowledgeStats[kp];
+                              const percent = accuracy ?? 0;
+                              const statusColor = getStatusColor(accuracy, colors);
+
+                              return (
+                                <button
+                                  key={kp}
+                                  onClick={() => navigate(`/graded-practice/${encodeURIComponent(kp)}`)}
+                                  className="group rounded-[22px] border bg-white px-4 py-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md"
+                                  style={{
+                                    borderColor: '#E4EAF5',
+                                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95)',
+                                  }}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <span
+                                      className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-white shadow-md"
+                                      style={{
+                                        background: `linear-gradient(180deg, ${statusColor}cc 0%, ${statusColor} 100%)`,
+                                        fontWeight: 900,
+                                        fontSize: '28px',
+                                      }}
+                                    >
+                                      {getPointSymbol(kp)}
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                      <span className="block break-words text-slate-800" style={{ fontWeight: 900, fontSize: 'clamp(15px, 3.5vw, 21px)', lineHeight: 1.25 }}>{kp}</span>
+                                      <span className="mt-1 block" style={{ color: statusColor, fontWeight: 900, fontSize: 'clamp(13px, 3vw, 18px)' }}>
+                                        {getLabel(accuracy)} · {percent}%
+                                      </span>
+                                      <span className="mt-4 flex items-center gap-3">
+                                        <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                                          <span
+                                            className="block h-full rounded-full transition-all"
+                                            style={{ width: `${percent}%`, background: statusColor }}
+                                          />
+                                        </span>
+                                        <span className="text-slate-500 tabular-nums" style={{ fontWeight: 700, fontSize: '14px' }}>{percent}%</span>
+                                      </span>
+                                    </span>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {hasChapterData && (
+                            <div
+                              className="mt-4 rounded-full px-4 py-3 flex items-center justify-center gap-2 text-slate-600"
+                              style={{ background: `linear-gradient(90deg, ${colors.soft} 0%, rgba(255,255,255,0.78) 100%)`, fontWeight: 700 }}
+                            >
+                              {mastery >= 85 ? <Star size={19} style={{ color: accent }} /> : <Lightbulb size={18} style={{ color: colors.main }} />}
+                              <span className="text-center text-sm md:text-base">{getChapterAdvice(mastery)}</span>
+                            </div>
+                          )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
                 );
               })}
             </div>
-          ))}
+          </div>
         </div>
       </div>
-      <BottomNav />
+
+      <div className="relative z-10 flex-shrink-0">
+        <BottomNav />
+      </div>
     </div>
   );
 }

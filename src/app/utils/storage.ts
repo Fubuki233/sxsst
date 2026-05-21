@@ -3,6 +3,8 @@ export interface User {
   password: string;
   grade: number;
   role: 'student' | 'teacher';
+  displayName?: string;
+  avatarUrl?: string;
 }
 
 export interface Question {
@@ -50,7 +52,7 @@ class Storage {
     if (users.find(u => u.username === username)) {
       return false;
     }
-    users.push({ username, password, grade, role });
+    users.push({ username, password, grade, role, displayName: username });
     this.saveUsers(users);
     return true;
   }
@@ -94,6 +96,31 @@ class Storage {
     if (cur && cur.username === username) {
       cur.grade = grade;
       localStorage.setItem('currentUser', JSON.stringify(cur));
+    }
+    return true;
+  }
+
+  updateProfile(username: string, profile: Pick<User, 'displayName' | 'grade' | 'avatarUrl'>) {
+    const users = this.getUsers();
+    const idx = users.findIndex(u => u.username === username);
+    if (idx < 0) return false;
+
+    users[idx] = {
+      ...users[idx],
+      displayName: profile.displayName?.trim() || users[idx].username,
+      grade: profile.grade,
+      avatarUrl: profile.avatarUrl,
+    };
+    this.saveUsers(users);
+
+    const cur = this.getCurrentUser();
+    if (cur && cur.username === username) {
+      localStorage.setItem('currentUser', JSON.stringify({
+        ...cur,
+        displayName: users[idx].displayName,
+        grade: users[idx].grade,
+        avatarUrl: users[idx].avatarUrl,
+      }));
     }
     return true;
   }
