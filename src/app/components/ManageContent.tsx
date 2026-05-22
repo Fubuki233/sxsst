@@ -72,29 +72,29 @@ export default function ManageContent() {
   const subjectChapters = chapters[selectedSubject] || [];
 
   return (
-    <div className="size-full flex flex-col" style={{ background: '#EEF4FF' }}>
-      <header className="bg-white shadow-sm px-4 md:px-8 py-3 flex items-center gap-3 flex-shrink-0">
-        <button onClick={() => navigate('/teacher')} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
+    <div className="size-full flex flex-col" style={{ background: '#F8FAFC' }}>
+      <header className="bg-white px-4 md:px-6 py-2.5 flex items-center gap-3 flex-shrink-0 border-b border-slate-200">
+        <button onClick={() => navigate('/teacher')} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors">
           <ArrowLeft size={20} className="text-gray-600" />
         </button>
-        <span style={{ fontWeight: 700, fontSize: '17px' }} className="text-gray-800">内容管理</span>
+        <span style={{ fontWeight: 800, fontSize: '17px' }} className="text-slate-900">内容管理</span>
       </header>
 
-      <div className="flex-1 overflow-auto p-4 md:p-6">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <div className="flex-1 overflow-auto p-3 md:p-5">
+        <div className="max-w-7xl mx-auto space-y-3">
 
           {/* Subject selector */}
-          <div className="bg-white rounded-2xl shadow-sm p-4">
-            <label className="text-gray-700 mb-2 block" style={{ fontWeight: 600, fontSize: '14px' }}>选择科目</label>
+          <div className="bg-white border border-slate-200 p-3">
+            <label className="text-slate-700 mb-2 block" style={{ fontWeight: 800, fontSize: '13px' }}>选择科目</label>
             <div className="flex gap-2 flex-wrap">
               {subjects.map(s => (
                 <button
                   key={s.id}
                   onClick={() => setSelectedSubject(s.id)}
-                  className={`px-4 py-2 rounded-xl transition-colors ${
-                    selectedSubject === s.id ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  className={`px-3 py-1.5 rounded-md border transition-colors ${
+                    selectedSubject === s.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
-                  style={{ fontSize: '14px', fontWeight: selectedSubject === s.id ? 600 : 400 }}
+                  style={{ fontSize: '13px', fontWeight: 800 }}
                 >
                   {s.name}
                 </button>
@@ -103,32 +103,35 @@ export default function ManageContent() {
           </div>
 
           {/* Add chapter */}
-          <div className="bg-white rounded-2xl shadow-sm p-4">
-            <h3 className="text-gray-800 mb-3" style={{ fontWeight: 700, fontSize: '15px' }}>添加章节</h3>
+          <div className="bg-white border border-slate-200 p-3">
+            <h3 className="text-slate-900 mb-2" style={{ fontWeight: 800, fontSize: '15px' }}>添加章节</h3>
             <div className="flex gap-2">
               <input
                 value={newChapterName}
                 onChange={e => setNewChapterName(e.target.value)}
                 placeholder="输入章节名称"
-                className="flex-1 px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                className="flex-1 px-3 py-2 border border-slate-300 rounded-md focus:border-blue-400 focus:outline-none"
                 style={{ fontSize: '14px' }}
                 onKeyDown={e => e.key === 'Enter' && addChapter()}
               />
-              <button onClick={addChapter} className="bg-blue-500 text-white px-4 py-2.5 rounded-xl hover:bg-blue-600 transition-colors flex items-center gap-1.5">
+              <button onClick={addChapter} className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1.5">
                 <Plus size={16} /> 添加
               </button>
             </div>
           </div>
 
           {/* Chapter list */}
-          <div className="space-y-3">
+          <div className="bg-white border border-slate-200 divide-y divide-slate-100">
             {subjectChapters.map(ch => (
-              <div key={ch.id} className="bg-white rounded-2xl shadow-sm p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-gray-800" style={{ fontWeight: 700, fontSize: '16px' }}>{ch.name}</span>
+              <div key={ch.id} className="p-4">
+                <div className="flex items-center justify-between mb-3 gap-3">
+                  <div>
+                    <span className="text-slate-900" style={{ fontWeight: 800, fontSize: '16px' }}>{ch.name}</span>
+                    <span className="text-slate-400 ml-2 text-sm">{ch.knowledgePoints.length} 个知识点</span>
+                  </div>
                   <button
                     onClick={() => { if (confirm('确定删除此章节？')) deleteChapter(selectedSubject, ch.id); }}
-                    className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                    className="text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -137,7 +140,7 @@ export default function ManageContent() {
                 {/* Knowledge points */}
                 <div className="flex flex-wrap gap-2 mb-3">
                   {ch.knowledgePoints.map(kp => (
-                    <span key={kp} className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm">
+                    <span key={kp} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded text-sm">
                       {kp}
                       <button onClick={() => deleteKnowledgePoint(selectedSubject, ch.id, kp)} className="hover:text-red-500">
                         ×
@@ -152,12 +155,12 @@ export default function ManageContent() {
                     value={kpInputs[ch.id] || ''}
                     onChange={e => setKpInputs(prev => ({ ...prev, [ch.id]: e.target.value }))}
                     placeholder="输入知识点名称"
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-400 focus:outline-none text-sm"
+                    className="flex-1 px-3 py-2 border border-slate-300 rounded-md focus:border-blue-400 focus:outline-none text-sm"
                     onKeyDown={e => e.key === 'Enter' && addKnowledgePoint(selectedSubject, ch.id)}
                   />
                   <button
                     onClick={() => addKnowledgePoint(selectedSubject, ch.id)}
-                    className="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1 text-sm"
+                    className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 text-sm"
                   >
                     <Plus size={14} /> 添加
                   </button>

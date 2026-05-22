@@ -11,6 +11,8 @@ export default function SubjectPage() {
   const subject = SUBJECTS.find(s => s.id === subjectId);
   const chapters = getAllChapters()[subjectId || ''] || [];
   const [knowledgeStats, setKnowledgeStats] = useState<Record<string, number>>({});
+  const currentUser = storage.getCurrentUser();
+  const isLowerGradeStudent = currentUser?.grade !== undefined && currentUser.grade < 4;
 
   useEffect(() => {
     const stats = storage.getKnowledgeStats();
@@ -65,7 +67,7 @@ export default function SubjectPage() {
             {chapters.map(chapter => (
               <div key={chapter.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <button
-                  onClick={() => navigate(`/practice/${subjectId}/${chapter.id}`)}
+                  onClick={() => navigate(isLowerGradeStudent ? `/lesson/chapter/${subjectId}/${chapter.id}` : `/practice/${subjectId}/${chapter.id}`)}
                   className="w-full px-4 md:px-6 py-3 md:py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
                 >
                   <div className="text-left flex-1">

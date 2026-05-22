@@ -1,18 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { storage, Answer } from '../utils/storage';
-import { TrendingUp, TrendingDown, User, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import { storage } from '../utils/storage';
+import { CalendarDays, ChevronLeft, ChevronRight, Settings, TrendingDown, TrendingUp, User } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 
 const LANDSCAPE_BG = '/assets/横屏背景图.png';
 const PORTRAIT_BG = '/assets/竖屏背景图.png';
-const ME_BANNER = '/assets/me_banner.png';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(storage.getCurrentUser());
   const [totalQuestions, setTotalQuestions] = useState(0);
-  const [totalTime, setTotalTime] = useState(0);
   const [overallAccuracy, setOverallAccuracy] = useState(0);
 
   // ── Calendar state ──
@@ -39,9 +37,6 @@ export default function ProfilePage() {
 
     const answers = storage.getAnswers();
     setTotalQuestions(answers.length);
-
-    const estimatedMinutes = Math.round(answers.length * 1.5);
-    setTotalTime(estimatedMinutes);
 
     if (answers.length > 0) {
       const correct = answers.filter(a => a.isCorrect).length;
@@ -146,47 +141,59 @@ export default function ProfilePage() {
         <source media="(orientation: landscape)" srcSet={LANDSCAPE_BG} />
         <img src={PORTRAIT_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
       </picture>
-      <div className="absolute inset-0 pointer-events-none bg-white/10" />
+      <div className="absolute inset-0 pointer-events-none bg-white/20" />
 
-      <div className="relative z-10 flex-1 overflow-auto px-4 md:px-6 pt-5 pb-5">
-        <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
+      <div className="relative z-10 flex-1 overflow-auto px-3 md:px-8 pt-3 md:pt-5 pb-5">
+        <div className="max-w-5xl mx-auto space-y-4 md:space-y-5">
           <section
-            className="relative overflow-hidden px-5 py-5 md:px-9 md:py-7 min-h-[132px] md:min-h-[156px]"
-            style={{ background: 'linear-gradient(180deg, #C4D1F8 0%, rgba(196, 209, 248, 0.58) 42%, rgba(196, 209, 248, 0) 100%)' }}
+            className="relative overflow-hidden rounded-[28px] px-4 py-4 md:px-5 md:py-5 border border-white/85"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.97) 0%, rgba(240,249,255,0.94) 54%, rgba(255,251,235,0.86) 100%)',
+              boxShadow: '0 14px 34px rgba(65, 98, 165, 0.14), inset 0 1px 0 rgba(255,255,255,0.95)',
+            }}
           >
-            <div className="absolute inset-0 opacity-45 pointer-events-none bg-[linear-gradient(rgba(255,255,255,0.65)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.65)_1px,transparent_1px)] bg-[length:32px_32px]" />
-            <img
-              src={ME_BANNER}
-              alt=""
-              className="absolute right-12 md:right-[72px] top-1/2 -translate-y-1/2 h-[82%] md:h-[88%] max-w-[42%] object-contain object-right pointer-events-none"
-            />
             <button
               onClick={() => navigate('/settings')}
-              className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-white/88 shadow-md hover:bg-white transition-colors"
+              className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-white/86 shadow-sm hover:bg-white active:scale-95 transition-all focus-visible:outline-2 focus-visible:outline-sky-400"
               title="设置"
             >
               <Settings size={22} className="text-slate-600" />
             </button>
 
-            <div className="relative z-10 flex items-center gap-3 pr-12">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/82 flex items-center justify-center shadow-lg flex-shrink-0">
-                <div className="w-[52px] h-[52px] md:w-16 md:h-16 rounded-full bg-gradient-to-br from-[#7EA7FF] to-[#3E63F4] flex items-center justify-center overflow-hidden">
-                  {user.avatarUrl ? (
-                    <img src={user.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-                  ) : (
-                    <User size={32} strokeWidth={2.4} className="text-white" />
-                  )}
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-5 pr-12">
+              <div className="min-w-0 lg:w-[310px] flex items-center gap-3 flex-shrink-0">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/84 flex items-center justify-center shadow-lg ring-1 ring-white/80 flex-shrink-0">
+                  <div className="w-[52px] h-[52px] md:w-16 md:h-16 rounded-full bg-gradient-to-br from-[#38BDF8] to-[#4F46E5] flex items-center justify-center overflow-hidden">
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={32} strokeWidth={2.4} className="text-white" />
+                    )}
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="truncate text-slate-900" style={{ fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: 900, lineHeight: 1 }}>{displayName}</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-white/75 px-3 py-1 text-sky-700 shadow-sm" style={{ fontSize: '12px', fontWeight: 900 }}>{getGradeLabel(user.grade)}</span>
+                    <span className="rounded-full bg-white/75 px-3 py-1 text-amber-600 shadow-sm" style={{ fontSize: '12px', fontWeight: 900 }}>{medalCount} 枚勋章</span>
+                  </div>
                 </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="truncate text-slate-900" style={{ fontSize: '24px', fontWeight: 900, lineHeight: 1 }}>{displayName}</span>
-                  <span className="rounded-full bg-gradient-to-r from-[#7EA7FF] to-[#4D72F5] px-2.5 py-1 text-white whitespace-nowrap" style={{ fontSize: '12px', fontWeight: 800 }}>{getGradeLabel(user.grade)}</span>
+
+              <div className="grid grid-cols-3 gap-0 flex-1 rounded-2xl bg-white/65 border border-white/85 overflow-hidden">
+                <div className="px-3 py-3 md:px-4">
+                  <div className="text-orange-500 whitespace-nowrap" style={{ fontSize: '11px', fontWeight: 900 }}>累计做题</div>
+                  <div className="text-orange-600" style={{ fontSize: '24px', fontWeight: 900, lineHeight: 1.05 }}>{totalQuestions}</div>
                 </div>
-                <div className="mt-2 text-blue-700" style={{ fontSize: '15px', fontWeight: 800 }}>{user.role === 'student' ? '学生' : '老师'}</div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="rounded-full bg-white/72 px-3 py-1 text-blue-600 shadow-sm" style={{ fontSize: '12px', fontWeight: 800 }}>已签到</span>
-                  <span className="rounded-full bg-white/72 px-3 py-1 text-amber-500 shadow-sm" style={{ fontSize: '12px', fontWeight: 800 }}>{medalCount} 枚勋章</span>
+                <div className="px-3 py-3 md:px-4 border-l border-white/90">
+                  <div className="text-sky-600 whitespace-nowrap" style={{ fontSize: '11px', fontWeight: 900 }}>坚持学习</div>
+                  <div className="text-sky-700" style={{ fontSize: '24px', fontWeight: 900, lineHeight: 1.05 }}>{activeDays}</div>
+                </div>
+                <div className="px-3 py-3 md:px-4 border-l border-white/90">
+                  <div className="text-emerald-600 whitespace-nowrap" style={{ fontSize: '11px', fontWeight: 900 }}>正确率</div>
+                  <div className="text-emerald-700" style={{ fontSize: '24px', fontWeight: 900, lineHeight: 1.05 }}>{overallAccuracy}%</div>
                 </div>
               </div>
             </div>
@@ -194,34 +201,30 @@ export default function ProfilePage() {
 
           {/* Calendar + data */}
           <div
-            className="bg-white rounded-[24px] shadow-lg overflow-hidden"
-            style={{ boxShadow: '0 18px 38px rgba(86, 114, 184, 0.12)' }}
+            className="bg-white/[0.94] rounded-[26px] shadow-lg overflow-hidden border border-white"
+            style={{ boxShadow: '0 12px 26px rgba(65, 98, 165, 0.10), inset 0 1px 0 rgba(255,255,255,0.9)' }}
           >
-            <div className="grid grid-cols-3 px-4 py-4 border-b border-slate-100">
-              <div className="text-center">
-                <div className="text-orange-500" style={{ fontSize: '26px', fontWeight: 900, lineHeight: 1 }}>{totalQuestions}</div>
-                <div className="mt-1.5 text-slate-500" style={{ fontSize: '13px', fontWeight: 700 }}>累计做题</div>
+            <div className="px-4 md:px-5 pt-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-slate-900" style={{ fontSize: '18px', fontWeight: 900, lineHeight: 1.2 }}>学习日历</h2>
+                <p className="text-slate-500 mt-1" style={{ fontSize: '12px', fontWeight: 700 }}>查看每天做题数量和正确率</p>
               </div>
-              <div className="text-center">
-                <div className="text-amber-400" style={{ fontSize: '26px', fontWeight: 900, lineHeight: 1 }}>{activeDays}</div>
-                <div className="mt-1.5 text-slate-500" style={{ fontSize: '13px', fontWeight: 700 }}>坚持学习</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lime-500" style={{ fontSize: '26px', fontWeight: 900, lineHeight: 1 }}>{overallAccuracy}%</div>
-                <div className="mt-1.5 text-slate-500" style={{ fontSize: '13px', fontWeight: 700 }}>正确率</div>
+              <div className="hidden sm:flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1.5 border border-sky-100">
+                <CalendarDays size={15} className="text-sky-600" />
+                <span className="text-sky-700" style={{ fontSize: '12px', fontWeight: 900 }}>{calendarYear}年</span>
               </div>
             </div>
 
-            <div className="px-3 py-3">
+            <div className="px-3 md:px-5 py-3 md:py-4">
             {/* Month header */}
-            <div className="flex items-center justify-between mb-3">
-              <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl text-sky-400 hover:bg-sky-50 transition-colors">
+            <div className="flex items-center justify-between mb-3 rounded-2xl bg-slate-50 px-2 py-2">
+              <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl text-sky-500 hover:bg-white transition-colors">
                 <ChevronLeft size={22} />
               </button>
-              <h3 className="text-slate-600" style={{ fontWeight: 700, fontSize: '20px' }}>
-                {MONTH_NAMES[calendarMonth - 1]}
+              <h3 className="text-slate-700" style={{ fontWeight: 900, fontSize: '18px' }}>
+                {calendarYear}年 {MONTH_NAMES[calendarMonth - 1]}
               </h3>
-              <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-300 hover:bg-slate-50 transition-colors">
+              <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl text-sky-500 hover:bg-white transition-colors">
                 <ChevronRight size={22} />
               </button>
             </div>
@@ -236,7 +239,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-y-2.5">
+            <div className="grid grid-cols-7 gap-y-2.5 md:gap-y-3">
               {calendarCells.map((day, idx) => {
                 if (day === null) return <div key={`empty-${idx}`} />;
 
@@ -245,11 +248,11 @@ export default function ProfilePage() {
                 const hasData = stat && stat.count > 0;
 
                 return (
-                  <div key={key} className="flex flex-col items-center justify-start min-h-[48px]">
+                  <div key={key} className="flex flex-col items-center justify-start min-h-[48px] md:min-h-[54px]">
                     {/* Date circle */}
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                        hasData ? 'bg-[#32AFE7] text-white shadow-sm' : 'text-slate-900'
+                        hasData ? 'bg-[#0EA5E9] text-white shadow-sm' : 'text-slate-700'
                       }`}
                       style={{ fontSize: '16px', fontWeight: hasData ? 800 : 500 }}
                     >
@@ -258,7 +261,7 @@ export default function ProfilePage() {
                     {/* Stats below */}
                     {hasData ? (
                       <>
-                        <div className="text-[#32AFE7] mt-0.5" style={{ fontSize: '11px', fontWeight: 800, lineHeight: 1 }}>
+                        <div className="text-[#0EA5E9] mt-0.5" style={{ fontSize: '11px', fontWeight: 800, lineHeight: 1 }}>
                           {stat.count}题
                         </div>
                         <div className="text-green-500" style={{ fontSize: '10px', lineHeight: 1, fontWeight: 800 }}>
@@ -276,40 +279,41 @@ export default function ProfilePage() {
           </div>
 
           {/* Trending */}
-          <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6">
-            <h3 className="mb-3 md:mb-4 text-gray-800" style={{ fontWeight: 700, fontSize: '16px' }}>知识点提升与下降</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2 md:mb-3 text-green-600 text-sm md:text-base">
-                  <TrendingUp size={18} className="md:w-5 md:h-5" />
-                  <span style={{ fontWeight: 600 }}>进步明显</span>
+          <div className="grid md:grid-cols-2 gap-3 md:gap-4">
+              <div className="bg-white/[0.94] rounded-[24px] shadow-sm p-4 border border-white">
+                <div className="flex items-center gap-2 mb-3 text-emerald-600 text-sm md:text-base">
+                  <span className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center">
+                    <TrendingUp size={18} />
+                  </span>
+                  <span style={{ fontWeight: 900 }}>进步明显</span>
                 </div>
                 {improving.length > 0 ? (
-                  <div className="space-y-1.5 md:space-y-2">
+                  <div className="flex flex-wrap gap-2">
                     {improving.map(kp => (
-                      <div key={kp} className="px-2.5 md:px-3 py-1.5 md:py-2 bg-green-50 rounded-xl text-green-700 text-sm md:text-base">{kp}</div>
+                      <div key={kp} className="px-3 py-1.5 bg-emerald-50 rounded-full text-emerald-700 text-sm" style={{ fontWeight: 800 }}>{kp}</div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-gray-400 text-sm md:text-base">暂无数据</div>
+                  <div className="text-gray-400 text-sm">暂无数据</div>
                 )}
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-2 md:mb-3 text-red-600 text-sm md:text-base">
-                  <TrendingDown size={18} className="md:w-5 md:h-5" />
-                  <span style={{ fontWeight: 600 }}>需要关注</span>
+              <div className="bg-white/[0.94] rounded-[24px] shadow-sm p-4 border border-white">
+                <div className="flex items-center gap-2 mb-3 text-rose-600 text-sm md:text-base">
+                  <span className="w-9 h-9 rounded-full bg-rose-50 flex items-center justify-center">
+                    <TrendingDown size={18} />
+                  </span>
+                  <span style={{ fontWeight: 900 }}>需要关注</span>
                 </div>
                 {declining.length > 0 ? (
-                  <div className="space-y-1.5 md:space-y-2">
+                  <div className="flex flex-wrap gap-2">
                     {declining.map(kp => (
-                      <div key={kp} className="px-2.5 md:px-3 py-1.5 md:py-2 bg-red-50 rounded-xl text-red-700 text-sm md:text-base">{kp}</div>
+                      <div key={kp} className="px-3 py-1.5 bg-rose-50 rounded-full text-rose-700 text-sm" style={{ fontWeight: 800 }}>{kp}</div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-gray-400 text-sm md:text-base">暂无数据</div>
+                  <div className="text-gray-400 text-sm">暂无数据</div>
                 )}
               </div>
-            </div>
           </div>
 
         </div>

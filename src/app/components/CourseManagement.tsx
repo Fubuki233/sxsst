@@ -85,26 +85,26 @@ export default function CourseManagement() {
   const chapters = allChapters[videoSubject] || [];
 
   return (
-    <div className="size-full flex flex-col" style={{ background: '#EEF4FF' }}>
-      <header className="bg-white shadow-sm px-4 md:px-8 py-3 flex items-center gap-3 flex-shrink-0">
-        <button onClick={() => navigate('/teacher')} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
+    <div className="size-full flex flex-col" style={{ background: '#F8FAFC' }}>
+      <header className="bg-white px-4 md:px-6 py-2.5 flex items-center gap-3 flex-shrink-0 border-b border-slate-200">
+        <button onClick={() => navigate('/teacher')} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors">
           <ArrowLeft size={20} className="text-gray-600" />
         </button>
-        <span style={{ fontWeight: 700, fontSize: '17px' }} className="text-gray-800">网课管理</span>
+        <span style={{ fontWeight: 800, fontSize: '17px' }} className="text-slate-900">网课管理</span>
       </header>
 
-      <div className="flex-1 overflow-auto p-4 md:p-6">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <div className="flex-1 overflow-auto p-3 md:p-5">
+        <div className="max-w-7xl mx-auto space-y-3">
           {/* Tabs */}
-          <div className="bg-white rounded-2xl shadow-sm p-1.5 flex gap-1.5">
+          <div className="bg-white border border-slate-200 p-1 flex gap-1">
             <button onClick={() => setTab('pricing')}
-              className={`flex-1 py-2.5 rounded-xl transition-colors ${tab === 'pricing' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}
-              style={{ fontWeight: tab === 'pricing' ? 600 : 400, fontSize: '14px' }}>
+              className={`flex-1 py-2 rounded-md transition-colors ${tab === 'pricing' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+              style={{ fontWeight: 800, fontSize: '14px' }}>
               课程定价与权限
             </button>
             <button onClick={() => setTab('videos')}
-              className={`flex-1 py-2.5 rounded-xl transition-colors ${tab === 'videos' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}
-              style={{ fontWeight: tab === 'videos' ? 600 : 400, fontSize: '14px' }}>
+              className={`flex-1 py-2 rounded-md transition-colors ${tab === 'videos' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+              style={{ fontWeight: 800, fontSize: '14px' }}>
               课程视频管理
             </button>
           </div>
@@ -112,10 +112,10 @@ export default function CourseManagement() {
           {tab === 'pricing' && (
             <div className="space-y-4">
               {/* Pricing table */}
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="bg-white border border-slate-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
                         <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>年级</th>
                         {SUBJECTS.map(s => (
@@ -129,7 +129,7 @@ export default function CourseManagement() {
                         const accessKey = `access_${g.id}`;
                         const hasAccess = courseData?.[accessKey] !== false;
                         return (
-                          <tr key={g.id} className="border-t border-gray-100 hover:bg-gray-50">
+                          <tr key={g.id} className="border-t border-slate-100 hover:bg-slate-50">
                             <td className="px-4 py-3" style={{ fontWeight: 600 }}>{g.label}</td>
                             {SUBJECTS.map(s => (
                               <td key={s.id} className="px-2 py-3 text-center">
@@ -139,7 +139,7 @@ export default function CourseManagement() {
                                     value={getPrice(g.id, s.id)}
                                     onChange={e => updatePrice(g.id, s.id, e.target.value)}
                                     placeholder="0"
-                                    className="w-16 text-center px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-blue-400 focus:outline-none"
+                                    className="w-16 text-center px-2 py-1.5 border border-slate-300 rounded-md text-sm focus:border-blue-400 focus:outline-none"
                                   />
                                 </div>
                               </td>
@@ -152,7 +152,7 @@ export default function CourseManagement() {
                                   saveCourseData(data);
                                   setCourseData(data);
                                 }}
-                                className={`px-3 py-1 rounded-lg text-xs transition-colors ${
+                                className={`px-2.5 py-1 rounded text-xs transition-colors ${
                                   hasAccess ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
                                 }`}
                               >
@@ -167,7 +167,7 @@ export default function CourseManagement() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-400">
+              <div className="bg-white border border-slate-200 p-3 text-xs text-gray-400">
                 提示：此页为前端演示。设置价格后学生端可见对应课程，关闭访问则不可见。
               </div>
             </div>
@@ -176,11 +176,11 @@ export default function CourseManagement() {
           {tab === 'videos' && (
             <div className="space-y-4">
               {/* Subject selector */}
-              <div className="flex gap-2 flex-wrap">
+              <div className="bg-white border border-slate-200 p-3 flex gap-2 flex-wrap">
                 {SUBJECTS.map(s => (
                   <button key={s.id} onClick={() => setVideoSubject(s.id)}
-                    className={`px-4 py-2 rounded-xl text-sm transition-colors ${
-                      videoSubject === s.id ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
+                    className={`px-3 py-1.5 rounded-md text-sm transition-colors border ${
+                      videoSubject === s.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-slate-200 hover:bg-gray-50'
                     }`}>
                     {s.name}
                   </button>
@@ -188,13 +188,13 @@ export default function CourseManagement() {
               </div>
 
               {/* Chapters with videos */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {chapters.map(ch => {
                   const vids = getVideosForChapter(videoSubject, ch.id);
                   return (
-                    <div key={ch.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                    <div key={ch.id} className="bg-white border border-slate-200 overflow-hidden">
                       {/* Chapter header */}
-                      <div className="px-4 md:px-6 py-3 flex items-center justify-between bg-gray-50 border-b border-gray-100">
+                      <div className="px-4 py-2.5 flex items-center justify-between bg-slate-50 border-b border-slate-200">
                         <div className="flex items-center gap-2">
                           <ChevronRight size={16} className="text-gray-400" />
                           <span className="text-gray-800" style={{ fontWeight: 700, fontSize: '15px' }}>{ch.name}</span>
@@ -202,16 +202,16 @@ export default function CourseManagement() {
                         </div>
                         <button
                           onClick={() => addVideo(videoSubject, ch.id)}
-                          className="bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1 text-xs">
+                          className="bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 text-xs">
                           <Plus size={14} /> 添加视频
                         </button>
                       </div>
 
                       {/* Videos list */}
-                      <div className="p-4 space-y-3">
+                      <div className="p-3 space-y-2">
                         {vids.map((v: any) => (
-                          <div key={v.id} className="flex items-start gap-3 p-3 border border-gray-100 rounded-xl hover:border-gray-200 transition-colors">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <div key={v.id} className="flex items-start gap-3 p-3 border border-slate-200 hover:bg-slate-50 transition-colors">
+                            <div className="w-9 h-9 bg-blue-50 rounded-md flex items-center justify-center flex-shrink-0">
                               <Play size={18} className="text-blue-500" />
                             </div>
                             <div className="flex-1 space-y-2">
@@ -219,11 +219,11 @@ export default function CourseManagement() {
                                 value={v.title}
                                 onChange={e => updateVideo(v.id, videoSubject, ch.id, 'title', e.target.value)}
                                 placeholder="视频标题"
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-blue-400 focus:outline-none"
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-blue-400 focus:outline-none"
                               />
                               {/* 视频上传（仅前端展示） */}
                               <label
-                                className="flex items-center justify-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-400 hover:border-blue-400 hover:text-blue-500 cursor-pointer transition-colors bg-gray-50 hover:bg-blue-50/30"
+                                className="flex items-center justify-center gap-2 w-full px-3 py-2.5 border border-dashed border-slate-300 rounded-md text-sm text-gray-400 hover:border-blue-400 hover:text-blue-500 cursor-pointer transition-colors bg-slate-50 hover:bg-blue-50/30"
                               >
                                 <UploadCloud size={16} />
                                 <span>{v.url ? v.url : '点击上传视频文件'}</span>
@@ -239,7 +239,7 @@ export default function CourseManagement() {
                               </label>
                             </div>
                             <button onClick={() => deleteVideo(v.id, videoSubject, ch.id)}
-                              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 flex-shrink-0">
+                              className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-red-50 text-gray-400 hover:text-red-500 flex-shrink-0">
                               <Trash2 size={16} />
                             </button>
                           </div>
@@ -258,7 +258,7 @@ export default function CourseManagement() {
                 )}
               </div>
 
-              <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-400">
+              <div className="bg-white border border-slate-200 p-3 text-xs text-gray-400">
                 提示：此页为前端演示。视频按章节组织，数据保存在本地。
               </div>
             </div>

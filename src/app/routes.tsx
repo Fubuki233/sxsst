@@ -6,6 +6,7 @@ import SubjectPage from "./components/SubjectPage";
 import PracticePage from "./components/PracticePage";
 import WeaknessPage from "./components/WeaknessPage";
 import GradedPracticePage from "./components/GradedPracticePage";
+import LessonIntroPage from "./components/LessonIntroPage";
 import KnowledgeMapPage from "./components/KnowledgeMapPage";
 import WrongQuestionsPage from "./components/WrongQuestionsPage";
 import ProfilePage from "./components/ProfilePage";
@@ -27,6 +28,8 @@ export const router = createHashRouter([
       { index: true, Component: LoginPage },
       { path: "dashboard", Component: Dashboard },
       { path: "subject/:subjectId", Component: SubjectPage },
+      { path: "lesson/chapter/:subjectId/:chapterId", Component: LessonIntroPage },
+      { path: "lesson/knowledge/:knowledgeId", Component: LessonIntroPage },
       { path: "practice/:subjectId/:chapterId", Component: PracticePage },
       { path: "weakness", Component: WeaknessPage },
       { path: "graded-practice/:knowledgeId", Component: GradedPracticePage },

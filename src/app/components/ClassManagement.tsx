@@ -71,27 +71,27 @@ export default function ClassManagement() {
   ];
 
   return (
-    <div className="size-full flex flex-col" style={{ background: '#EEF4FF' }}>
-      <header className="bg-white shadow-sm px-4 md:px-8 py-3 flex items-center gap-3 flex-shrink-0">
-        <button onClick={() => navigate('/teacher')} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors">
+    <div className="size-full flex flex-col" style={{ background: '#F8FAFC' }}>
+      <header className="bg-white px-4 md:px-6 py-2.5 flex items-center gap-3 flex-shrink-0 border-b border-slate-200">
+        <button onClick={() => navigate('/teacher')} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors">
           <ArrowLeft size={20} className="text-gray-600" />
         </button>
-        <span style={{ fontWeight: 700, fontSize: '17px' }} className="text-gray-800">班级管理</span>
+        <span style={{ fontWeight: 800, fontSize: '17px' }} className="text-slate-900">班级管理</span>
         <span className="text-gray-400 text-sm ml-auto">{allStudents.length} 名学生</span>
       </header>
 
-      <div className="flex-1 overflow-auto p-4 md:p-6">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <div className="flex-1 overflow-auto p-3 md:p-5">
+        <div className="max-w-7xl mx-auto space-y-3">
           {/* Tabs */}
-          <div className="bg-white rounded-2xl shadow-sm p-1.5 flex gap-1.5">
+          <div className="bg-white border border-slate-200 p-1 flex gap-1">
             <button onClick={() => setTab('roster')}
-              className={`flex-1 py-2.5 rounded-xl transition-colors ${tab === 'roster' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}
-              style={{ fontWeight: tab === 'roster' ? 600 : 400, fontSize: '14px' }}>
+              className={`flex-1 py-2 rounded-md transition-colors ${tab === 'roster' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+              style={{ fontWeight: 800, fontSize: '14px' }}>
               学生名单
             </button>
             <button onClick={() => setTab('invite')}
-              className={`flex-1 py-2.5 rounded-xl transition-colors ${tab === 'invite' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}
-              style={{ fontWeight: tab === 'invite' ? 600 : 400, fontSize: '14px' }}>
+              className={`flex-1 py-2 rounded-md transition-colors ${tab === 'invite' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+              style={{ fontWeight: 800, fontSize: '14px' }}>
               邀请学生
             </button>
           </div>
@@ -99,15 +99,15 @@ export default function ClassManagement() {
           {tab === 'roster' && (
             <>
               {/* Add student */}
-              <div className="bg-white rounded-2xl shadow-sm p-4">
-                <h3 className="text-gray-800 mb-3" style={{ fontWeight: 700, fontSize: '15px' }}>添加学生</h3>
+              <div className="bg-white border border-slate-200 p-3">
+                <h3 className="text-slate-900 mb-2" style={{ fontWeight: 800, fontSize: '15px' }}>添加学生</h3>
                 <div className="flex flex-wrap gap-2 mb-3">
                   <input value={newName} onChange={e => setNewName(e.target.value)}
-                    placeholder="学生姓名" className="flex-1 min-w-0 px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-blue-400 focus:outline-none" />
+                    placeholder="学生姓名" className="flex-1 min-w-0 px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-blue-400 focus:outline-none" />
                   <input value={newPhone} onChange={e => setNewPhone(e.target.value)}
-                    placeholder="手机号" className="flex-1 min-w-0 px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-blue-400 focus:outline-none" />
+                    placeholder="手机号" className="flex-1 min-w-0 px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-blue-400 focus:outline-none" />
                   <select value={newGrade} onChange={e => setNewGrade(Number(e.target.value))}
-                    className="px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm">
+                    className="px-3 py-2 border border-slate-300 rounded-md text-sm">
                     {Array.from({ length: 9 }, (_, i) => i + 1).map(g => (
                       <option key={g} value={g}>{g <= 6 ? `小学${g}` : `初中${g - 6}`}</option>
                     ))}
@@ -115,21 +115,21 @@ export default function ClassManagement() {
                 </div>
                 <div className="flex gap-2">
                   <button onClick={addStudent}
-                    className="bg-blue-500 text-white px-4 py-2.5 rounded-xl hover:bg-blue-600 transition-colors flex items-center gap-1.5 text-sm">
+                    className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1.5 text-sm">
                     <Plus size={16} /> 添加
                   </button>
                   <button onClick={handlePhoneImport}
-                    className="bg-green-500 text-white px-4 py-2.5 rounded-xl hover:bg-green-600 transition-colors flex items-center gap-1.5 text-sm">
+                    className="bg-emerald-600 text-white px-3 py-2 rounded-md hover:bg-emerald-700 transition-colors flex items-center gap-1.5 text-sm">
                     <Smartphone size={16} /> 手机号导入
                   </button>
                 </div>
               </div>
 
               {/* Student list */}
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="bg-white border border-slate-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
                         <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>姓名</th>
                         <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>手机号</th>
@@ -140,7 +140,7 @@ export default function ClassManagement() {
                     </thead>
                     <tbody>
                       {allStudents.map((s: any, idx: number) => (
-                        <tr key={idx} className="border-t border-gray-100 hover:bg-gray-50 cursor-pointer"
+                        <tr key={idx} className="border-t border-slate-100 hover:bg-slate-50 cursor-pointer"
                           onClick={() => setSelectedStudent(s.name)}>
                           <td className="px-4 py-3" style={{ fontWeight: 600 }}>{s.name}</td>
                           <td className="px-4 py-3 text-gray-600">{s.phone}</td>
@@ -148,7 +148,7 @@ export default function ClassManagement() {
                             {s.grade <= 6 ? `小学${s.grade}` : `初中${s.grade - 6}`}
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`px-2 py-0.5 rounded-full text-xs ${
+                            <span className={`px-2 py-0.5 rounded text-xs ${
                               s.status === '已注册' || s.status === '已加入' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
                             }`}>{s.status}</span>
                           </td>
@@ -175,9 +175,9 @@ export default function ClassManagement() {
           {tab === 'invite' && (
             <div className="space-y-4">
               {/* QR Code invite */}
-              <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
-                <h3 className="text-gray-800 mb-4" style={{ fontWeight: 700, fontSize: '16px' }}>二维码邀请</h3>
-                <div className="w-40 h-40 mx-auto mb-4 bg-gray-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-gray-300">
+              <div className="bg-white border border-slate-200 p-5 text-center">
+                <h3 className="text-slate-900 mb-4" style={{ fontWeight: 800, fontSize: '16px' }}>二维码邀请</h3>
+                <div className="w-40 h-40 mx-auto mb-4 bg-slate-50 flex items-center justify-center border border-dashed border-slate-300">
                   <div className="text-center">
                     <QrCode size={48} className="text-gray-400 mx-auto mb-2" />
                     <div className="text-gray-400 text-xs">学生扫码加入</div>
@@ -187,18 +187,18 @@ export default function ClassManagement() {
               </div>
 
               {/* Invite code */}
-              <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
-                <h3 className="text-gray-800 mb-4" style={{ fontWeight: 700, fontSize: '16px' }}>邀请码</h3>
+              <div className="bg-white border border-slate-200 p-5 text-center">
+                <h3 className="text-slate-900 mb-4" style={{ fontWeight: 800, fontSize: '16px' }}>邀请码</h3>
                 <div className="flex items-center justify-center gap-2 mb-4">
-                  <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl px-6 py-3">
+                  <div className="bg-slate-50 border border-dashed border-slate-300 px-6 py-3">
                     <span className="text-gray-800" style={{ fontWeight: 800, fontSize: '24px', letterSpacing: '4px' }}>
                       {inviteCode || '--------'}
                     </span>
                   </div>
                 </div>
                 <button onClick={genInviteCode}
-                  className="bg-blue-500 text-white px-6 py-2.5 rounded-xl hover:bg-blue-600 transition-colors flex items-center gap-1.5 mx-auto text-sm"
-                  style={{ fontWeight: 600 }}>
+                  className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1.5 mx-auto text-sm"
+                  style={{ fontWeight: 800 }}>
                   <Link size={16} />
                   {inviteCode ? '重新生成' : '生成邀请码'}
                 </button>
@@ -206,15 +206,15 @@ export default function ClassManagement() {
               </div>
 
               {/* Link share */}
-              <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
-                <h3 className="text-gray-800 mb-4" style={{ fontWeight: 700, fontSize: '16px' }}>链接邀请</h3>
-                <div className="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-500 mb-3 break-all border border-gray-200">
+              <div className="bg-white border border-slate-200 p-5 text-center">
+                <h3 className="text-slate-900 mb-4" style={{ fontWeight: 800, fontSize: '16px' }}>链接邀请</h3>
+                <div className="bg-slate-50 px-4 py-3 text-sm text-gray-500 mb-3 break-all border border-slate-200">
                   https://sxsst.example.com/join?class=teacher001
                 </div>
                 <button
                   onClick={() => { navigator.clipboard?.writeText('https://sxsst.example.com/join?class=teacher001'); alert('已复制链接'); }}
-                  className="bg-blue-500 text-white px-6 py-2.5 rounded-xl hover:bg-blue-600 transition-colors flex items-center gap-1.5 mx-auto text-sm"
-                  style={{ fontWeight: 600 }}>
+                  className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1.5 mx-auto text-sm"
+                  style={{ fontWeight: 800 }}>
                   <Link size={16} /> 复制邀请链接
                 </button>
               </div>
@@ -227,14 +227,14 @@ export default function ClassManagement() {
               <div className="fixed inset-0 z-50" style={{ background: 'rgba(0,0,0,0.35)' }}
                 onClick={() => setSelectedStudent(null)} />
               <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto pointer-events-none">
-                <div className="bg-white rounded-2xl shadow-2xl m-4 md:m-8 p-4 md:p-6 w-full max-w-md pointer-events-auto"
+                <div className="bg-white border border-slate-200 shadow-xl m-4 md:m-8 p-4 md:p-5 w-full max-w-md pointer-events-auto"
                   style={{ maxHeight: '90vh', overflowY: 'auto' }}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-gray-800" style={{ fontWeight: 700, fontSize: '16px' }}>
                       {selectedStudent} 的学情
                     </h3>
                     <button onClick={() => setSelectedStudent(null)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400">
+                      className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-400">
                       <X size={18} />
                     </button>
                   </div>
