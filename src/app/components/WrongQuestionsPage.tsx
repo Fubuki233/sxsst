@@ -4,8 +4,9 @@ import { storage, Answer } from '../utils/storage';
 import { getAllQuestions } from '../utils/questions';
 import { AlertCircle, CheckCircle, Clock3, Lightbulb, RotateCcw, Search, Target, XCircle } from 'lucide-react';
 import { BottomNav } from './BottomNav';
+import { publicAsset } from '../utils/assets';
 
-const ASSET = '/assets/';
+const ASSET = publicAsset('assets/');
 const LANDSCAPE_BG = `${ASSET}横屏背景图.png`;
 const PORTRAIT_BG = `${ASSET}竖屏背景图.png`;
 

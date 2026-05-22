@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router';
 import { storage } from '../utils/storage';
 import { CalendarDays, ChevronLeft, ChevronRight, Settings, TrendingDown, TrendingUp, User } from 'lucide-react';
 import { BottomNav } from './BottomNav';
+import { publicAsset } from '../utils/assets';
 
-const LANDSCAPE_BG = '/assets/横屏背景图.png';
-const PORTRAIT_BG = '/assets/竖屏背景图.png';
+const LANDSCAPE_BG = publicAsset('assets/横屏背景图.png');
+const PORTRAIT_BG = publicAsset('assets/竖屏背景图.png');
 
 export default function ProfilePage() {
   const navigate = useNavigate();

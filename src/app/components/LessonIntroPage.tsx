@@ -3,8 +3,9 @@ import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { ArrowLeft, BookOpen, ChevronRight, ClipboardList, Crown, Gift, Lock, Play, Sparkles, Trophy, Video } from 'lucide-react';
 import { CHAPTERS, SUBJECTS, getAllQuestions } from '../utils/questions';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { publicAsset } from '../utils/assets';
 
-const ASSET = '/assets/';
+const ASSET = publicAsset('assets/');
 
 const SUBJECT_ASSETS: Record<string, { banner: string; textbook: string; lesson: string }> = {
   math: {

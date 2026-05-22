@@ -2,12 +2,13 @@ import { useNavigate, useLocation } from 'react-router';
 import { Home, FileText, Map, User, Settings } from 'lucide-react';
 import { storage } from '../utils/storage';
 import { transitionStore } from '../utils/transitionStore';
+import { publicAsset } from '../utils/assets';
 
 const STUDENT_NAV = [
-  { id: 'dashboard', icon: Home, label: '首页', path: '/dashboard', image: '/assets/home.png', activeImage: '/assets/home_c.png' },
-  { id: 'wrong-questions', icon: FileText, label: '错题本', path: '/wrong-questions', image: '/assets/errorbook.png', activeImage: '/assets/errorbook_c.png' },
-  { id: 'knowledge-map', icon: Map, label: '知识图谱', path: '/knowledge-map', image: '/assets/knowledgemap.png', activeImage: '/assets/knowledgemap_c.png' },
-  { id: 'profile', icon: User, label: '个人中心', path: '/profile', image: '/assets/me.png', activeImage: '/assets/me_c.png' },
+  { id: 'dashboard', icon: Home, label: '首页', path: '/dashboard', image: publicAsset('assets/home.png'), activeImage: publicAsset('assets/home_c.png') },
+  { id: 'wrong-questions', icon: FileText, label: '错题本', path: '/wrong-questions', image: publicAsset('assets/errorbook.png'), activeImage: publicAsset('assets/errorbook_c.png') },
+  { id: 'knowledge-map', icon: Map, label: '知识图谱', path: '/knowledge-map', image: publicAsset('assets/knowledgemap.png'), activeImage: publicAsset('assets/knowledgemap_c.png') },
+  { id: 'profile', icon: User, label: '个人中心', path: '/profile', image: publicAsset('assets/me.png'), activeImage: publicAsset('assets/me_c.png') },
 ];
 
 export function BottomNav() {

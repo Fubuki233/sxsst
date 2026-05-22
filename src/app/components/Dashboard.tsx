@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { BottomNav } from './BottomNav';
+import { publicAsset } from '../utils/assets';
 
 // ── Dynamic import: all PNG icons from imports folder ──
 const iconModules = import.meta.glob('../../imports/*.png', { eager: true, import: 'default' }) as Record<string, string>;
@@ -18,7 +19,7 @@ function getIcon(name: string): string {
   return '';
 }
 
-const PUBLIC_ASSET = '/assets/';
+const PUBLIC_ASSET = publicAsset('assets/');
 
 // ── Subject config: use custom PNG icons ──
 const SUBJECT_CONFIG: Record<string, {
@@ -96,8 +97,8 @@ const ALL_GRADES = [
 ];
 
 const BADGE_GOAL = 10;
-const LANDSCAPE_BG = '/assets/横屏底图.png';
-const PORTRAIT_BG = '/assets/竖屏底图.png';
+const LANDSCAPE_BG = publicAsset('assets/横屏底图.png');
+const PORTRAIT_BG = publicAsset('assets/竖屏底图.png');
 
 const statCards = [
   { key: 'today', label: '今日做题', icon: '今日做题', color: 'text-blue-600', bg: 'bg-blue-50', unit: '题' },

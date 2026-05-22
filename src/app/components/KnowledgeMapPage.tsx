@@ -4,8 +4,9 @@ import { BookOpenCheck, ChevronRight, Lightbulb, Target } from 'lucide-react';
 import { SUBJECTS, getAllChapters } from '../utils/questions';
 import { storage } from '../utils/storage';
 import { BottomNav } from './BottomNav';
+import { publicAsset } from '../utils/assets';
 
-const ASSET = '/assets/';
+const ASSET = publicAsset('assets/');
 const LANDSCAPE_BG = `${ASSET}横屏背景图.png`;
 const PORTRAIT_BG = `${ASSET}竖屏背景图.png`;
 

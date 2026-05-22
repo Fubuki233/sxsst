@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { storage, KnowledgeStats } from '../utils/storage';
 import { ArrowLeft, BookCheck, ChevronRight, Flame, Star, Target, Trophy } from 'lucide-react';
+import { publicAsset } from '../utils/assets';
 
-const LANDSCAPE_BG = '/assets/横屏背景图.png';
-const PORTRAIT_BG = '/assets/竖屏背景图.png';
+const LANDSCAPE_BG = publicAsset('assets/横屏背景图.png');
+const PORTRAIT_BG = publicAsset('assets/竖屏背景图.png');
 
 export default function WeaknessPage() {
   const navigate = useNavigate();
