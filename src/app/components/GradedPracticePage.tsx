@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router';
 import { getAllQuestions, getRandomKnowledgeQuestion } from '../utils/questions';
 import { storage, Question } from '../utils/storage';
-import { ArrowLeft, CheckCircle, XCircle, Lightbulb, AlertCircle, Info, Lock, TrendingUp, Sparkles, Star, Trophy } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Lightbulb, AlertCircle, TrendingUp, Sparkles, Star, Trophy } from 'lucide-react';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 
@@ -21,7 +21,7 @@ export default function GradedPracticePage() {
     medium: { total: 0, correct: 0 },
     hard: { total: 0, correct: 0 }
   });
-  const [unlockedDifficulties, setUnlockedDifficulties] = useState<Difficulty[]>(['easy']);
+  const [, setUnlockedDifficulties] = useState<Difficulty[]>(['easy']);
 
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState('');
@@ -344,69 +344,36 @@ export default function GradedPracticePage() {
     );
   }
 
-  const difficulties: { level: Difficulty; label: string; color: string }[] = [
-    { level: 'easy', label: '简单', color: 'bg-green-500' },
-    { level: 'medium', label: '中等', color: 'bg-yellow-500' },
-    { level: 'hard', label: '困难', color: 'bg-red-500' }
-  ];
-
   if (isLowerGradeStudent) {
-    const difficultyLabel = currentQuestion.difficulty === 'easy' ? '简单' : currentQuestion.difficulty === 'medium' ? '中等' : '困难';
     const answeredCount = difficultyStats[currentDifficulty].total;
-    const gateProgress = Math.min(100, Math.round((answeredCount / 3) * 100));
 
     return (
       <div className="size-full flex flex-col relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #4F8FF5 0%, #58B8F6 48%, #8BE2F2 100%)' }}>
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.22),transparent_28%),radial-gradient(circle_at_86%_4%,rgba(255,255,255,0.18),transparent_26%)]" />
 
-        <header className="relative z-10 px-4 md:px-8 pt-4 pb-2 flex-shrink-0">
+        <header className="relative z-10 px-3 md:px-8 pt-3 pb-2 flex-shrink-0">
           <div className="max-w-5xl mx-auto flex items-center gap-3">
             <button
               onClick={() => navigate(fromWrongQuestions ? '/wrong-questions' : '/weakness')}
-              className="w-11 h-11 flex items-center justify-center rounded-2xl bg-blue-900/24 text-white ring-1 ring-white/20 active:scale-95"
+              className="w-10 h-10 flex items-center justify-center rounded-2xl bg-blue-900/24 text-white ring-1 ring-white/20 active:scale-95"
             >
-              <ArrowLeft size={22} />
+              <ArrowLeft size={21} />
             </button>
-            <div className="flex-1 min-w-0 rounded-2xl bg-blue-900/20 px-4 py-2 text-white ring-1 ring-white/16">
-              <div className="truncate" style={{ fontSize: '18px', fontWeight: 900 }}>{isRetryMode ? '错题再挑战' : knowledgePoint}</div>
-              <div className="text-white/80" style={{ fontSize: '12px', fontWeight: 800 }}>第 {questionNumber} 题 · {difficultyLabel}关卡</div>
+            <div className="flex-1 min-w-0 rounded-2xl bg-blue-900/20 px-3 py-2 text-white ring-1 ring-white/16">
+              <div className="truncate" style={{ fontSize: '17px', fontWeight: 900 }}>{isRetryMode ? '错题再挑战' : knowledgePoint}</div>
+              <div className="text-white/80" style={{ fontSize: '12px', fontWeight: 800 }}>第 {questionNumber} 题</div>
             </div>
-            <div className="hidden sm:flex h-11 items-center gap-1 rounded-full bg-blue-900/24 px-3 text-white ring-1 ring-white/16">
+            <div className="hidden sm:flex h-10 items-center gap-1 rounded-full bg-blue-900/24 px-3 text-white ring-1 ring-white/16">
               <Star size={18} className="text-yellow-300" style={{ fill: 'currentColor' }} />
               <span style={{ fontSize: '18px', fontWeight: 900 }}>{difficultyStats[currentDifficulty].correct}</span>
             </div>
           </div>
         </header>
 
-        <div className="relative z-10 flex-1 overflow-auto p-4 md:p-6">
-          <div className="max-w-5xl mx-auto space-y-4">
-            {!isRetryMode && (
-              <div className="rounded-[28px] border-2 border-cyan-100/80 bg-blue-700/18 p-3" style={{ boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.22)' }}>
-                <div className="grid grid-cols-3 gap-2">
-                  {difficulties.map(({ level, label }) => {
-                    const isUnlocked = unlockedDifficulties.includes(level);
-                    const isCurrent = currentDifficulty === level;
-                    return (
-                      <button
-                        key={level}
-                        onClick={() => isUnlocked && setCurrentDifficulty(level)}
-                        disabled={!isUnlocked}
-                        className={`h-12 rounded-2xl transition-all active:scale-95 ${isCurrent ? 'bg-white text-blue-700' : isUnlocked ? 'bg-white/24 text-white hover:bg-white/32' : 'bg-blue-950/20 text-white/45 cursor-not-allowed'}`}
-                        style={{ fontWeight: 900 }}
-                      >
-                        {isUnlocked ? label : '未解锁'}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 h-4 rounded-full bg-blue-900/20 p-1">
-                  <div className="h-full rounded-full bg-gradient-to-r from-yellow-300 to-emerald-300" style={{ width: `${gateProgress}%` }} />
-                </div>
-              </div>
-            )}
-
-            <div className="rounded-[34px] border-2 border-white/85 bg-white/94 p-4 md:p-7" style={{ boxShadow: '0 12px 0 rgba(30,64,175,0.14), 0 18px 34px rgba(15,23,42,0.16)' }}>
-              <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="relative z-10 flex-1 overflow-hidden p-3 md:p-5 min-h-0">
+          <div className="max-w-5xl mx-auto h-full min-h-0 flex flex-col gap-3">
+            <div className="rounded-[30px] border-2 border-white/85 bg-white/94 p-3 md:p-5 flex-shrink-0" style={{ boxShadow: '0 10px 0 rgba(30,64,175,0.14), 0 16px 30px rgba(15,23,42,0.16)' }}>
+              <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1.5 text-sky-700 border border-sky-100" style={{ fontSize: '13px', fontWeight: 900 }}>
                   <Sparkles size={16} />
                   小挑战
@@ -418,18 +385,18 @@ export default function GradedPracticePage() {
                 </div>
               </div>
 
-              <div className="text-slate-900 mb-5 md:mb-7" style={{ fontSize: 'clamp(24px, 6vw, 36px)', fontWeight: 900, lineHeight: 1.25 }}>
+              <div className="text-slate-900 mb-3 md:mb-5" style={{ fontSize: 'clamp(22px, 5.6vw, 34px)', fontWeight: 900, lineHeight: 1.2 }}>
                 {currentQuestion.question}
               </div>
 
               {currentQuestion.options ? (
-                <div className="grid gap-3 md:gap-4">
+                <div className="grid gap-2 md:gap-3">
                   {currentQuestion.options.map((option, index) => (
                     <button
                       key={index}
                       onClick={() => !submitted && setSelectedAnswer(option)}
                       disabled={submitted}
-                      className={`w-full text-left px-4 md:px-5 py-4 rounded-[22px] border-2 transition-all flex items-center active:translate-y-0.5 ${
+                      className={`w-full text-left px-4 md:px-5 ${submitted ? 'py-2.5 md:py-3' : 'py-3 md:py-3.5'} rounded-[20px] border-2 transition-all flex items-center active:translate-y-0.5 ${
                         submitted
                           ? option === currentQuestion.answer
                             ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
@@ -440,9 +407,9 @@ export default function GradedPracticePage() {
                           ? 'bg-sky-500 text-white border-sky-500'
                           : 'bg-white border-sky-100 hover:border-sky-300 hover:bg-sky-50'
                       } ${submitted ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                      style={{ fontSize: '18px', fontWeight: 900, boxShadow: !submitted && selectedAnswer === option ? '0 6px 0 rgba(2, 132, 199, 0.22)' : undefined }}
+                      style={{ fontSize: '17px', fontWeight: 900, boxShadow: !submitted && selectedAnswer === option ? '0 6px 0 rgba(2, 132, 199, 0.22)' : undefined }}
                     >
-                      <span className="mr-3 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-current" style={{ fontWeight: 900 }}>
+                      <span className="mr-3 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-current" style={{ fontWeight: 900 }}>
                         {String.fromCharCode(65 + index)}
                       </span>
                       {option}
@@ -463,29 +430,21 @@ export default function GradedPracticePage() {
             </div>
 
             {showResult && (
-              <div className="rounded-[30px] border-2 border-white/85 bg-white/94 p-4 md:p-6" style={{ boxShadow: '0 10px 0 rgba(30,64,175,0.10), 0 16px 28px rgba(15,23,42,0.12)' }}>
-                <div className={`flex items-center gap-3 mb-4 ${isCorrect ? 'text-emerald-600' : 'text-amber-600'}`} style={{ fontSize: '22px', fontWeight: 900 }}>
-                  {isCorrect ? <CheckCircle size={30} /> : <AlertCircle size={30} />}
-                  {isCorrect ? '答对啦！' : '差一点，再看一步'}
+              <div className="rounded-[22px] border-2 border-white/85 bg-white/94 px-3 py-2.5 md:px-4 flex-shrink-0" style={{ boxShadow: '0 7px 0 rgba(30,64,175,0.08)' }}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className={`flex items-center gap-2 ${isCorrect ? 'text-emerald-600' : 'text-amber-600'}`} style={{ fontSize: '18px', fontWeight: 900 }}>
+                    {isCorrect ? <CheckCircle size={24} /> : <AlertCircle size={24} />}
+                    {isCorrect ? '答对啦！' : '差一点'}
+                  </div>
+                  {!isCorrect && (
+                    <div className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700" style={{ fontSize: '14px', fontWeight: 900 }}>
+                      正确答案：{currentQuestion.answer}
+                    </div>
+                  )}
                 </div>
-                {!isCorrect && (
-                  <div className="mb-4 rounded-2xl bg-emerald-50 px-4 py-3 text-emerald-700" style={{ fontSize: '17px', fontWeight: 900 }}>
-                    正确答案：{currentQuestion.answer}
-                  </div>
-                )}
-                <div className="grid md:grid-cols-2 gap-3">
-                  <div className="rounded-2xl bg-sky-50 px-4 py-3 text-slate-700">
-                    <div className="text-sky-700 mb-1" style={{ fontWeight: 900 }}>这题练什么</div>
-                    <div style={{ lineHeight: 1.55 }}>{currentQuestion.knowledgePoint}</div>
-                  </div>
-                  <div className="rounded-2xl bg-amber-50 px-4 py-3 text-slate-700">
-                    <div className="text-amber-700 mb-1" style={{ fontWeight: 900 }}>小提示</div>
-                    <div style={{ lineHeight: 1.55 }}>{currentQuestion.warning}</div>
-                  </div>
-                </div>
-                <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-slate-700 border border-sky-100">
-                  <div className="text-sky-700 mb-1" style={{ fontWeight: 900 }}>解题方法</div>
-                  <div style={{ lineHeight: 1.65 }}>{currentQuestion.explanation}</div>
+                <div className="mt-2 flex flex-wrap gap-2 text-slate-700" style={{ fontSize: '13px', fontWeight: 800 }}>
+                  <span className="rounded-full bg-sky-50 px-3 py-1 text-sky-700">知识点：{currentQuestion.knowledgePoint}</span>
+                  <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">提示：{currentQuestion.warning}</span>
                 </div>
               </div>
             )}
@@ -493,9 +452,9 @@ export default function GradedPracticePage() {
             <button
               onClick={handlePrimaryAction}
               disabled={!selectedAnswer}
-              className="w-full h-14 rounded-full text-white transition-all disabled:bg-slate-300 disabled:cursor-not-allowed active:translate-y-0.5"
+              className="w-full h-[52px] min-h-[52px] rounded-full text-white transition-all disabled:bg-slate-300 disabled:cursor-not-allowed active:translate-y-0.5 flex-shrink-0"
               style={{
-                fontSize: '20px',
+                fontSize: '19px',
                 fontWeight: 900,
                 background: selectedAnswer ? 'linear-gradient(180deg, #FFE66D 0%, #FDBA21 54%, #F97316 100%)' : undefined,
                 boxShadow: selectedAnswer ? '0 7px 0 rgba(194, 91, 0, 0.28), inset 0 2px 0 rgba(255,255,255,0.52)' : undefined,
@@ -504,6 +463,13 @@ export default function GradedPracticePage() {
             >
               {!submitted ? '检查答案' : isRetryMode ? '完成并返回' : '下一题'}
             </button>
+
+            {showResult && (
+              <div className="rounded-[20px] border border-white/85 bg-white/88 px-4 py-2.5 text-slate-700 flex-shrink-0" style={{ fontSize: '13px', fontWeight: 800, lineHeight: 1.45 }}>
+                <span className="text-sky-700" style={{ fontWeight: 900 }}>解析：</span>
+                <span className="ml-1">{currentQuestion.explanation}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -514,13 +480,13 @@ export default function GradedPracticePage() {
     <div className="size-full flex flex-col" style={{ background: '#EEF4FF' }}>
       <div className="px-4 md:px-8 pt-3 pb-2 flex-shrink-0">
         <div
-          className="max-w-4xl mx-auto rounded-[24px] border border-white/85 px-3 py-3 md:px-4"
+          className="max-w-4xl mx-auto rounded-[22px] border border-white/85 px-3 py-2.5 md:px-4"
           style={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(240,249,255,0.94) 58%, rgba(255,251,235,0.86) 100%)',
             boxShadow: '0 12px 28px rgba(65, 98, 165, 0.12), inset 0 1px 0 rgba(255,255,255,0.95)',
           }}
         >
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3">
           <button onClick={() => navigate(fromWrongQuestions ? '/wrong-questions' : '/weakness')} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/75 hover:bg-white transition-colors">
             <ArrowLeft size={20} className="text-gray-600" />
           </button>
@@ -531,73 +497,25 @@ export default function GradedPracticePage() {
             <div className="text-slate-500" style={{ fontSize: '12px', fontWeight: 700 }}>第 {questionNumber} 题 · {currentQuestion.knowledgePoint}</div>
           </div>
         </div>
-
-        {!isRetryMode && <div className="flex gap-2">
-          {difficulties.map(({ level, label, color }) => {
-            const isUnlocked = unlockedDifficulties.includes(level);
-            const isCurrent = currentDifficulty === level;
-            const stats = difficultyStats[level];
-            const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
-
-            return (
-              <button
-                key={level}
-                onClick={() => isUnlocked && setCurrentDifficulty(level)}
-                disabled={!isUnlocked}
-                className={`flex-1 px-3 py-2.5 rounded-xl border-2 transition-all ${
-                  isCurrent
-                    ? 'bg-sky-500 text-white border-sky-500 shadow-sm'
-                    : isUnlocked
-                    ? 'bg-white/70 border-white hover:border-sky-300'
-                    : 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-50'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-1.5 mb-0.5">
-                  <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
-                  <span style={{ fontWeight: isCurrent ? 700 : 400, fontSize: '14px' }}>{label}</span>
-                  {isCurrent && <span style={{ fontSize: '11px' }}>训练中</span>}
-                </div>
-                {isUnlocked && stats.total > 0 && (
-                  <div style={{ fontSize: '11px' }} className="opacity-80">
-                    {accuracy}% ({stats.correct}/{stats.total})
-                  </div>
-                )}
-                {!isUnlocked && (
-                  <div className="flex items-center justify-center gap-1" style={{ fontSize: '11px' }}>
-                    <Lock size={11} />未解锁
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>}
-
-        {!isRetryMode && <div className="mt-2 text-gray-400 text-center flex items-center justify-center gap-1" style={{ fontSize: '11px' }}>
-          <Info size={12} />
-          <span>简单题80%解锁中等，中等80%解锁困难</span>
-        </div>}
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-4 md:p-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="flex-1 overflow-hidden p-3 md:p-5 min-h-0">
+        <div className="max-w-4xl mx-auto h-full min-h-0 flex flex-col gap-3">
           <div
-            className="bg-white/[0.96] rounded-[28px] shadow-sm p-4 md:p-7 mb-4 border border-white"
+            className="bg-white/[0.96] rounded-[26px] shadow-sm p-4 md:p-6 border border-white flex-shrink-0"
             style={{ boxShadow: '0 12px 26px rgba(65, 98, 165, 0.10), inset 0 1px 0 rgba(255,255,255,0.9)' }}
           >
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-100 mb-4" style={{ fontSize: '12px', fontWeight: 900 }}>
-              {currentQuestion.difficulty === 'easy' ? '简单' : currentQuestion.difficulty === 'medium' ? '中等' : '困难'}
-            </div>
-            <div className="text-slate-900 mb-5 md:mb-7 leading-relaxed" style={{ fontSize: 'clamp(20px, 4.4vw, 28px)', fontWeight: 900 }}>{currentQuestion.question}</div>
+            <div className="text-slate-900 mb-4 md:mb-5 leading-relaxed" style={{ fontSize: 'clamp(20px, 4.4vw, 28px)', fontWeight: 900 }}>{currentQuestion.question}</div>
 
             {currentQuestion.options ? (
-              <div className="space-y-3 md:space-y-4">
+              <div className="space-y-2.5 md:space-y-3">
                 {currentQuestion.options.map((option, index) => (
                   <button
                     key={index}
                     onClick={() => !submitted && setSelectedAnswer(option)}
                     disabled={submitted}
-                    className={`w-full text-left px-4 md:px-5 py-3.5 md:py-4 rounded-2xl border transition-all flex items-center active:scale-[0.99] ${
+                    className={`w-full text-left px-4 md:px-5 ${submitted ? 'py-2.5 md:py-3' : 'py-3 md:py-3.5'} rounded-2xl border transition-all flex items-center active:scale-[0.99] ${
                       submitted
                         ? option === currentQuestion.answer
                           ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
@@ -631,30 +549,22 @@ export default function GradedPracticePage() {
           </div>
 
           {showResult && (
-            <div className={`bg-white/[0.96] rounded-[24px] shadow-sm p-4 md:p-6 mb-4 border border-white border-l-4 ${isCorrect ? 'border-l-emerald-500' : 'border-l-rose-500'}`}>
-              <div className={`flex items-center gap-2 md:gap-3 mb-3 md:mb-4 ${isCorrect ? 'text-emerald-600' : 'text-rose-600'}`}
-                style={{ fontSize: '18px', fontWeight: 700 }}>
-                {isCorrect ? <CheckCircle size={24} className="md:w-8 md:h-8" /> : <XCircle size={24} className="md:w-8 md:h-8" />}
-                {isCorrect ? '回答正确' : '回答错误'}
+            <div className={`bg-white/[0.96] rounded-[20px] shadow-sm px-3 py-2.5 md:px-4 border border-white border-l-4 flex-shrink-0 ${isCorrect ? 'border-l-emerald-500' : 'border-l-rose-500'}`}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className={`flex items-center gap-2 ${isCorrect ? 'text-emerald-600' : 'text-rose-600'}`}
+                  style={{ fontSize: '16px', fontWeight: 900 }}>
+                  {isCorrect ? <CheckCircle size={22} /> : <XCircle size={22} />}
+                  {isCorrect ? '回答正确' : '回答错误'}
+                </div>
+                {!isCorrect && (
+                  <div className="rounded-full bg-emerald-50 px-3 py-1" style={{ fontSize: '14px' }}>
+                    正确答案：<span className="text-green-600" style={{ fontWeight: 800 }}>{currentQuestion.answer}</span>
+                  </div>
+                )}
               </div>
-              {!isCorrect && (
-                <div className="mb-3 md:mb-4" style={{ fontSize: '16px' }}>
-                  正确答案：<span className="text-green-600" style={{ fontWeight: 600 }}>{currentQuestion.answer}</span>
-                </div>
-              )}
-              <div className="space-y-2 md:space-y-3 text-sm md:text-base">
-                <div className="flex items-start gap-2">
-                  <Info size={18} className="text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div><span className="text-blue-500" style={{ fontWeight: 600 }}>本题知识点：</span><span className="ml-1">{currentQuestion.knowledgePoint}</span></div>
-                </div>
-                <div className="flex items-start gap-2">
-                  <Lightbulb size={18} className="text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div><span className="text-blue-500" style={{ fontWeight: 600 }}>知识点解析：</span><span className="ml-1">{currentQuestion.explanation}</span></div>
-                </div>
-                <div className="flex items-start gap-2">
-                  <AlertCircle size={18} className="text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div><span className="text-blue-500" style={{ fontWeight: 600 }}>易错提醒：</span><span className="ml-1">{currentQuestion.warning}</span></div>
-                </div>
+              <div className="mt-2 flex flex-wrap gap-2" style={{ fontSize: '13px', fontWeight: 700 }}>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-600">知识点：{currentQuestion.knowledgePoint}</span>
+                <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">提醒：{currentQuestion.warning}</span>
               </div>
             </div>
           )}
@@ -662,7 +572,7 @@ export default function GradedPracticePage() {
           <button
             onClick={handlePrimaryAction}
             disabled={!selectedAnswer}
-            className="w-full text-white py-3.5 md:py-4 rounded-2xl transition-all disabled:bg-gray-300 disabled:cursor-not-allowed shadow-sm active:scale-[0.99]"
+            className="w-full h-[50px] min-h-[50px] text-white rounded-2xl transition-all disabled:bg-gray-300 disabled:cursor-not-allowed shadow-sm active:scale-[0.99] flex-shrink-0"
             style={{
               fontSize: '16px',
               fontWeight: 900,
@@ -671,6 +581,14 @@ export default function GradedPracticePage() {
           >
             {!submitted ? '提交答案' : isRetryMode ? '完成并返回' : '下一题'}
           </button>
+
+          {showResult && (
+            <div className="bg-white/[0.92] rounded-[18px] px-4 py-2.5 border border-white flex-shrink-0 text-slate-700" style={{ fontSize: '13px', lineHeight: 1.45 }}>
+              <Lightbulb size={16} className="inline-block text-blue-500 mr-1 align-[-3px]" />
+              <span className="text-blue-500" style={{ fontWeight: 800 }}>解析：</span>
+              <span className="ml-1">{currentQuestion.explanation}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

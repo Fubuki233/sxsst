@@ -1,11 +1,29 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { storage, KnowledgeStats } from '../utils/storage';
-import { ArrowLeft, BookCheck, ChevronRight, Flame, Star, Target, Trophy } from 'lucide-react';
-import { publicAsset } from '../utils/assets';
+import { ArrowLeft, BookCheck, ChevronRight, Flame, Gem, Play, Star, Target, Trophy } from 'lucide-react';
+import { BottomNav } from './BottomNav';
 
-const LANDSCAPE_BG = publicAsset('assets/横屏背景图.png');
-const PORTRAIT_BG = publicAsset('assets/竖屏背景图.png');
+const seniorWeaknessPalettes = [
+  { bg: '#A889F3', accent: '#CBB8FF' },
+  { bg: '#87EBCF', accent: '#BDF8EA' },
+  { bg: '#ED8F88', accent: '#FFC7C2' },
+  { bg: '#FFAF18', accent: '#FFD986' },
+  { bg: '#E8669A', accent: '#F59FC2' },
+  { bg: '#FF6058', accent: '#FFAAA6' },
+];
+
+function getWeaknessSeed(value: string) {
+  return value.split('').reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
+}
+
+function getSeniorWeaknessCardStyle(value: string) {
+  const seed = getWeaknessSeed(value);
+  return {
+    palette: seniorWeaknessPalettes[seed % seniorWeaknessPalettes.length],
+    reward: (seed % 5) + 1,
+  };
+}
 
 export default function WeaknessPage() {
   const navigate = useNavigate();
@@ -150,96 +168,93 @@ export default function WeaknessPage() {
   }
 
   return (
-    <div className="size-full flex flex-col relative overflow-hidden" style={{ background: '#EEF4FF' }}>
-      <picture className="absolute inset-0 block pointer-events-none">
-        <source media="(orientation: landscape)" srcSet={LANDSCAPE_BG} />
-        <img src={PORTRAIT_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      </picture>
-      <div className="absolute inset-0 pointer-events-none bg-white/20" />
+    <div className="size-full flex flex-col relative overflow-hidden [background:var(--senior-page-bg)] text-white">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_18%_6%,rgba(255,255,255,0.08),transparent_24%),radial-gradient(circle_at_84%_18%,rgba(168,137,243,0.13),transparent_28%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-32 pointer-events-none bg-gradient-to-t from-[#4E4248]/85 to-transparent" />
 
-      <header className="relative z-10 px-4 md:px-8 pt-3 pb-2 flex-shrink-0">
-        <div
-          className="max-w-4xl mx-auto rounded-[24px] border border-white/85 px-3 py-3 md:px-4"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(240,249,255,0.94) 58%, rgba(255,251,235,0.86) 100%)',
-            boxShadow: '0 12px 28px rgba(65, 98, 165, 0.12), inset 0 1px 0 rgba(255,255,255,0.95)',
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/dashboard')} className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/75 hover:bg-white transition-colors">
-              <ArrowLeft size={20} className="text-gray-600" />
+      <div className="relative z-10 flex-1 overflow-auto px-4 pt-7 pb-7">
+        <div className="mx-auto w-full max-w-[480px]">
+          <header className="mb-7">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="mb-5 flex h-9 items-center gap-2 rounded-full bg-white/10 px-3 text-white/82 transition-colors hover:bg-white/14 focus-visible:outline-2 focus-visible:outline-white"
+            >
+              <ArrowLeft size={16} />
+              <span style={{ fontSize: '13px', fontWeight: 800 }}>返回</span>
             </button>
-            <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-100 mb-2" style={{ fontSize: '12px', fontWeight: 900 }}>
-                <Target size={14} />
-                薄弱训练
-              </div>
-              <h1 className="text-slate-900" style={{ fontWeight: 900, fontSize: 'clamp(20px, 5vw, 28px)', lineHeight: 1.15 }}>优先攻克薄弱点</h1>
+            <h1 className="text-white" style={{ fontFamily: 'Georgia, "STKaiti", "KaiTi", serif', fontSize: '42px', fontWeight: 900, lineHeight: 1, letterSpacing: 0 }}>
+              薄弱训练
+            </h1>
+            <div className="mt-4 flex items-center gap-3 text-white/62" style={{ fontSize: '14px', fontWeight: 700 }}>
+              <span className="flex h-9 items-center gap-1.5 rounded-full bg-white/10 px-3">
+                <Target size={16} />
+                {weaknesses.length} 个待提升点
+              </span>
+              <span className="flex h-9 items-center gap-1.5 rounded-full bg-white/10 px-3">
+                <Flame size={16} />
+                专项重练
+              </span>
             </div>
-          </div>
-        </div>
-      </header>
+          </header>
 
-      <div className="relative z-10 flex-1 overflow-auto p-4 md:p-6">
-        <div className="max-w-4xl mx-auto">
           {weaknesses.length === 0 ? (
-            <div className="bg-white/[0.96] rounded-[28px] shadow-sm p-8 md:p-12 text-center border border-white" style={{ boxShadow: '0 12px 26px rgba(65, 98, 165, 0.10)' }}>
-              <div className="flex justify-center mb-4">
-                <div className="w-20 h-20 md:w-24 md:h-24 bg-sky-100 rounded-full flex items-center justify-center">
-                  <BookCheck size={40} className="text-sky-500 md:w-12 md:h-12" />
-                </div>
-              </div>
-              <div className="text-xl md:text-2xl mb-2" style={{ fontWeight: 900 }}>还没有做题记录</div>
-              <div className="text-sm md:text-base text-gray-500 mb-6">开始答题后，系统会自动分析你的薄弱知识点</div>
+            <div className="rounded-[8px] bg-white/10 px-6 py-12 text-center">
+              <BookCheck size={46} className="mx-auto text-[#87EBCF]" />
+              <div className="mt-4 text-white" style={{ fontSize: '22px', fontWeight: 900 }}>还没有做题记录</div>
+              <div className="mt-2 text-white/55" style={{ fontSize: '14px', fontWeight: 700 }}>开始答题后，系统会自动分析你的薄弱知识点</div>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="text-white px-6 md:px-8 py-2.5 md:py-3 text-base md:text-lg rounded-xl transition-all active:scale-[0.98]"
-                style={{ fontWeight: 900, background: 'linear-gradient(135deg, #0EA5E9 0%, #4F46E5 100%)' }}
+                className="mt-6 h-12 rounded-full px-7 text-white transition-transform active:scale-[0.98]"
+                style={{ fontWeight: 900, background: '#A889F3' }}
               >
-                去做题
+                返回发现
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {weaknesses.map((stat, index) => {
                 const status = getStatusInfo(stat.accuracy);
-                const barColor = stat.accuracy < 60 ? '#F43F5E' : stat.accuracy < 85 ? '#F59E0B' : '#22C55E';
+                const card = getSeniorWeaknessCardStyle(stat.knowledgePoint);
                 return (
                   <button
                     key={stat.knowledgePoint}
                     onClick={() => navigate(`/graded-practice/${encodeURIComponent(stat.knowledgePoint)}`)}
-                    className="w-full bg-white/[0.96] rounded-[24px] shadow-sm border border-white overflow-hidden text-left transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-sky-400"
-                    style={{ boxShadow: '0 12px 26px rgba(65, 98, 165, 0.10)' }}
+                    className="relative block h-[188px] w-full overflow-hidden rounded-[8px] p-4 text-left transition-transform active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-white"
+                    style={{ background: card.palette.bg }}
                   >
-                    <div className="px-4 md:px-5 py-4 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 flex-shrink-0" style={{ fontWeight: 900 }}>
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
-                          <span className="text-base md:text-xl text-slate-900" style={{ fontWeight: 900 }}>{stat.knowledgePoint}</span>
-                          <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs md:text-sm ${status.bg} ${status.color}`}>
-                            {status.label}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 md:gap-6 text-xs md:text-base text-gray-500 flex-wrap">
-                          <span>正确率 {stat.accuracy}%</span>
-                          <span>已练习 {stat.total} 题</span>
-                          <span>答对 {stat.correct} 题</span>
-                        </div>
-                        <div className="mt-2 md:mt-3 bg-gray-100 rounded-full h-2 overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{ width: `${stat.accuracy}%`, background: barColor }}
+                    <div className="absolute right-[-54px] bottom-[-48px] h-40 w-40 rounded-full opacity-85" style={{ background: card.palette.accent }} />
+                    <div className="relative z-10 flex h-9 w-fit items-center gap-1.5 rounded-full bg-white/25 px-3 text-white">
+                      <Gem size={18} style={{ fill: 'rgba(255,255,255,0.28)' }} />
+                      <span style={{ fontSize: '16px', fontWeight: 900 }}>{card.reward}</span>
+                    </div>
+                    <div className="relative z-10 mt-5 text-white" style={{ fontFamily: 'Georgia, "STKaiti", "KaiTi", serif', fontSize: '26px', fontWeight: 900, lineHeight: 1.08 }}>
+                      {stat.knowledgePoint}
+                    </div>
+                    <div className="relative z-10 mt-3 inline-flex rounded-full bg-white/22 px-3 py-1 text-white" style={{ fontSize: '12px', fontWeight: 900 }}>
+                      {status.label} · {stat.accuracy}%
+                    </div>
+                    <div className="relative z-10 mt-4 h-2 rounded-full bg-[#2B2B2E]/22">
+                      <div className="h-full rounded-full bg-white/78" style={{ width: `${stat.accuracy}%` }} />
+                    </div>
+                    <div className="relative z-10 mt-3 text-white/72" style={{ fontSize: '12px', fontWeight: 700, lineHeight: 1.45 }}>
+                      已练习 {stat.total} 题 · 答对 {stat.correct} 题
+                    </div>
+                    <div className="absolute bottom-4 left-4 z-10 flex h-9 items-center gap-1 rounded-full bg-[#2B2B2E]/34 px-3 text-white backdrop-blur-sm">
+                      <Play size={14} fill="currentColor" />
+                      <span style={{ fontSize: '12px', fontWeight: 900 }}>训练</span>
+                    </div>
+                    <div className="absolute bottom-4 right-4 z-10 flex items-center gap-0.5">
+                      {Array.from({ length: 3 }).map((_, starIndex) => {
+                        const filled = Math.ceil(stat.accuracy / 34) > starIndex;
+                        return (
+                          <Star
+                            key={starIndex}
+                            size={14}
+                            className={filled ? 'text-white' : 'text-white/34'}
+                            style={{ fill: filled ? 'currentColor' : 'none' }}
                           />
-                        </div>
-                      </div>
-                      <div className="hidden md:flex items-center gap-2 flex-shrink-0 text-sky-600" style={{ fontWeight: 900 }}>
-                        去训练
-                        <div className="w-9 h-9 rounded-full bg-sky-50 flex items-center justify-center">
-                          <ChevronRight size={18} />
-                        </div>
-                      </div>
+                        );
+                      })}
                     </div>
                   </button>
                 );
@@ -247,6 +262,10 @@ export default function WeaknessPage() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="relative z-10 flex-shrink-0">
+        <BottomNav />
       </div>
     </div>
   );

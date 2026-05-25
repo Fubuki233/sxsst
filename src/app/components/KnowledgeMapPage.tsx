@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { BookOpenCheck, ChevronRight, Lightbulb, Target } from 'lucide-react';
-import { SUBJECTS, getAllChapters } from '../utils/questions';
+import { BookOpenCheck, Bookmark, Check, ChevronRight, Lightbulb, Lock, Target } from 'lucide-react';
+import { SUBJECTS, getAllChapters, getSubjectsByGrade } from '../utils/questions';
 import { storage } from '../utils/storage';
 import { BottomNav } from './BottomNav';
 import { publicAsset } from '../utils/assets';
@@ -23,6 +23,78 @@ const SUBJECT_COLORS: Record<string, { main: string; soft: string; deep: string;
   physics: { main: '#9B5CF6', soft: '#F4EEFF', deep: '#4A2B86', leaf: '#C08BFF', warm: '#8B5CF6' },
   chemistry: { main: '#5F8DF7', soft: '#EEF6FF', deep: '#244078', leaf: '#93B7FF', warm: '#4F8CF7' },
 };
+
+const SENIOR_ASSET = publicAsset('assets/senior-game/');
+const SENIOR_ASSET_VERSION = '?v=senior-svg-6-20260522';
+
+const seniorMapArt: Record<string, { images: string[]; bg: string; accent: string }> = {
+  math: {
+    images: [
+      `${SENIOR_ASSET}math-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#A889F3',
+    accent: '#CBB8FF',
+  },
+  english: {
+    images: [
+      `${SENIOR_ASSET}english-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#87EBCF',
+    accent: '#BDF8EA',
+  },
+  physics: {
+    images: [
+      `${SENIOR_ASSET}physics-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#ED8F88',
+    accent: '#FFC7C2',
+  },
+  chemistry: {
+    images: [
+      `${SENIOR_ASSET}chemistry-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#FFAF18',
+    accent: '#FFD986',
+  },
+};
+
+const seniorChapterPalettes = [
+  { bg: '#A889F3', accent: '#CBB8FF' },
+  { bg: '#87EBCF', accent: '#BDF8EA' },
+  { bg: '#ED8F88', accent: '#FFC7C2' },
+  { bg: '#FFAF18', accent: '#FFD986' },
+  { bg: '#E8669A', accent: '#F59FC2' },
+  { bg: '#FF6058', accent: '#FFAAA6' },
+];
+
+function getStableSeed(value: string) {
+  return value.split('').reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
+}
+
+function getSeniorChapterStyle(value: string) {
+  const seed = getStableSeed(value);
+  return {
+    palette: seniorChapterPalettes[seed % seniorChapterPalettes.length],
+    reward: (seed % 5) + 1,
+    height: 254 + (seed % 3) * 30,
+  }
+}
 
 function getLabel(acc?: number): string {
   if (acc === undefined) return '未练习';
@@ -86,8 +158,190 @@ export default function KnowledgeMapPage() {
     : 0;
   const currentUser = storage.getCurrentUser();
   const isLowerGradeStudent = currentUser?.grade !== undefined && currentUser.grade < 4;
+  const visibleSubjects = currentUser?.grade !== undefined ? getSubjectsByGrade(currentUser.grade) : SUBJECTS;
   const startKnowledgePractice = (kp: string) => {
     navigate(isLowerGradeStudent ? `/lesson/knowledge/${encodeURIComponent(kp)}` : `/graded-practice/${encodeURIComponent(kp)}`);
+  };
+
+  if (!isLowerGradeStudent) {
+    const activeSubject = visibleSubjects.find(subject => subject.id === selectedSubject) || visibleSubjects[0] || SUBJECTS[0];
+
+    return (
+      <div className="size-full flex flex-col relative overflow-hidden [background:var(--senior-page-bg)] text-white">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_18%_6%,rgba(255,255,255,0.08),transparent_24%),radial-gradient(circle_at_84%_18%,rgba(168,137,243,0.13),transparent_28%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-32 pointer-events-none bg-gradient-to-t from-[#4E4248]/85 to-transparent" />
+
+        <div className="relative z-10 flex-1 overflow-auto px-4 pt-7 pb-7">
+          <div className="mx-auto w-full max-w-[680px]">
+            <header className="mb-5 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h1 className="truncate text-white" style={{ fontFamily: 'Georgia, "STKaiti", "KaiTi", serif', fontSize: '28px', fontWeight: 900, lineHeight: 1, letterSpacing: 0 }}>
+                  知识图谱
+                </h1>
+                <p className="mt-1 truncate text-white/52" style={{ fontSize: '12px', fontWeight: 700 }}>
+                  {activeSubject?.name || '课程'} · 章节进度
+                </p>
+              </div>
+              <div className="grid w-[214px] flex-shrink-0 grid-cols-3 gap-1.5">
+                {[
+                  { label: '掌握', value: `${averageMastery}%` },
+                  { label: '已练', value: `${practicedCount}/${allKnowledgePoints.length}` },
+                  { label: '薄弱', value: weakCount },
+                ].map(item => (
+                  <div key={item.label} className="rounded-[8px] bg-white/10 px-2 py-2 text-center">
+                    <div className="text-white" style={{ fontSize: '15px', fontWeight: 900, lineHeight: 1 }}>{item.value}</div>
+                    <div className="mt-1 text-white/52" style={{ fontSize: '10px', fontWeight: 800, lineHeight: 1 }}>{item.label}</div>
+                  </div>
+                ))}
+              </div>
+            </header>
+
+            <div className="-mx-4 flex gap-7 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {visibleSubjects.map((subject, index) => {
+                const active = selectedSubject === subject.id;
+                const art = seniorMapArt[subject.id] || seniorMapArt.math;
+                const label = subject.name;
+                return (
+                  <div key={subject.id} className="relative h-[192px] w-[180px] flex-shrink-0">
+                    {active && (
+                      <span
+                        className="absolute bottom-0 left-1/2 z-0 h-8 w-8 -translate-x-1/2 rotate-45 rounded-[6px]"
+                        style={{
+                          background: 'var(--senior-map-card-bg)',
+                          boxShadow: '10px 10px 18px rgba(35,43,69,0.05)',
+                        }}
+                      />
+                    )}
+                    <button
+                    key={subject.id}
+                    onClick={() => setSelectedSubject(subject.id)}
+                    className="relative z-10 h-[176px] w-full rounded-[8px] text-left transition-transform hover:-translate-y-1 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-white"
+                    style={{
+                      background: 'var(--senior-map-card-bg)',
+                      boxShadow: 'var(--senior-map-card-shadow)',
+                    }}
+                  >
+                    <div className="relative z-10 h-[92px] overflow-hidden rounded-t-[8px]" style={{ background: art.bg }}>
+                      <div className="absolute right-[-18px] top-[-24px] h-28 w-28 rounded-full" style={{ background: art.accent }} />
+                      <img src={art.images[index % art.images.length]} alt="" className="relative z-10 h-[104px] w-full object-contain object-right-bottom" />
+                    </div>
+                    <div className="relative z-10 px-5 pt-4" style={{ color: 'var(--senior-map-card-text)', fontSize: '24px', lineHeight: 1.12, fontWeight: active ? 900 : 500 }}>
+                      {label}
+                    </div>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <section className="mt-4 space-y-6">
+              {chapters.map((chapter, chapterIndex) => {
+                const mastery = getChapterMastery(chapter.knowledgePoints, knowledgeStats);
+                const isSaved = chapterIndex === 1;
+                const headerTitle = chapterIndex === 0
+                  ? `${activeSubject?.name || '课程'}基础`
+                  : chapter.name;
+
+                return (
+                  <article
+                    key={chapter.id}
+                    className="relative overflow-hidden rounded-[8px] px-6 py-7"
+                    style={{
+                      background: 'var(--senior-map-card-bg)',
+                      boxShadow: 'var(--senior-map-card-shadow)',
+                    }}
+                  >
+                    <div className="flex items-center gap-5">
+                      <div
+                        className="relative flex h-[62px] w-[62px] flex-shrink-0 items-center justify-center rounded-full"
+                        style={{
+                          background: `conic-gradient(#20D6C9 ${Math.max(12, mastery)}%, var(--senior-map-progress-track) 0)`,
+                        }}
+                      >
+                        <div className="h-[48px] w-[48px] rounded-full" style={{ background: 'var(--senior-map-card-bg)' }} />
+                      </div>
+                      <div className="min-w-0">
+                        <h2 className="truncate text-[#5964F2]" style={{ fontSize: '20px', fontWeight: 900, lineHeight: 1.2 }}>
+                          {headerTitle}
+                        </h2>
+                        <p className="mt-1" style={{ color: 'var(--senior-map-muted-text)', fontSize: '13px', fontWeight: 700 }}>
+                          掌握 {mastery}% · {chapter.knowledgePoints.length} 个知识点
+                        </p>
+                      </div>
+                      {isSaved && (
+                        <button
+                          onClick={() => navigate(`/subject/${selectedSubject}`)}
+                          className="ml-auto flex h-[74px] w-[74px] flex-shrink-0 items-center justify-center rounded-[8px] bg-[#5964F2] text-white shadow-[0_18px_34px_rgba(89,100,242,0.26)] transition-transform active:scale-95 focus-visible:outline-2 focus-visible:outline-white"
+                          aria-label="保存课程"
+                        >
+                          <Bookmark size={36} strokeWidth={2.8} />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="relative mt-6 pl-[95px]">
+                      <div className="absolute left-[30px] top-0 bottom-2 w-px" style={{ background: 'var(--senior-map-line)' }} />
+                      <div className="space-y-8">
+                        {chapter.knowledgePoints.map((kp, pointIndex) => {
+                          const accuracy = knowledgeStats[kp];
+                          const completed = accuracy !== undefined ? accuracy >= 70 : chapterIndex === 0 && pointIndex === 0;
+                          const active = !completed && chapterIndex === 0 && pointIndex === 1;
+                          const locked = !completed && !active && chapterIndex > 0 && pointIndex === 0;
+                          const subtitle = accuracy !== undefined
+                            ? `${getLabel(accuracy)} · ${accuracy}%`
+                            : active
+                              ? '正在学习'
+                              : completed
+                                ? '已完成'
+                                : '待解锁';
+
+                          return (
+                            <button
+                              key={kp}
+                              onClick={() => startKnowledgePractice(kp)}
+                              className="group relative block w-full text-left focus-visible:outline-2 focus-visible:outline-white"
+                            >
+                              <span
+                                className={`absolute left-[-76px] top-1 flex h-5 w-5 items-center justify-center rounded-full border-4 border-white ${
+                                  completed
+                                    ? 'bg-[#20D6C9] text-white'
+                                    : active
+                                      ? 'bg-[#20D6C9]'
+                                      : locked
+                                        ? 'text-slate-300 ring-4'
+                                        : ''
+                                }`}
+                                style={!completed && !active ? {
+                                  background: locked ? 'var(--senior-map-card-bg)' : 'var(--senior-map-line)',
+                                  ['--tw-ring-color' as string]: 'var(--senior-map-line)',
+                                } : undefined}
+                              >
+                                {completed && <Check size={16} strokeWidth={4} />}
+                                {locked && <Lock size={12} strokeWidth={3} />}
+                              </span>
+                              <span className="block transition-colors group-hover:text-[#5964F2]" style={{ color: 'var(--senior-map-card-text)', fontSize: 'clamp(24px, 6.2vw, 36px)', lineHeight: 1.08, fontWeight: 400 }}>
+                                {kp}
+                              </span>
+                              <span className="mt-1 block" style={{ color: 'var(--senior-map-muted-text)', fontSize: 'clamp(15px, 3.8vw, 22px)', lineHeight: 1.2, fontWeight: 400 }}>
+                                {subtitle}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </section>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex-shrink-0">
+          <BottomNav />
+        </div>
+      </div>
+    );
   };
 
   return (

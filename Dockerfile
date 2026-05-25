@@ -3,8 +3,8 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm. Keep this on a Node 20 compatible major version.
+RUN corepack enable && corepack prepare pnpm@10 --activate
 
 # Copy package files
 COPY package.json pnpm-workspace.yaml ./

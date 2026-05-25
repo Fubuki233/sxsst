@@ -14,6 +14,74 @@
   height: 100%;
 }
 
+.demo-watermark {
+  position: absolute;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.38;
+  background-image:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22320%22%20height%3D%22180%22%20viewBox%3D%220%200%20320%20180%22%3E%3Ctext%20x%3D%2248%22%20y%3D%2298%22%20transform%3D%22rotate(-28%20160%2090)%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.46%22%20font-size%3D%2224%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-weight%3D%22800%22%20letter-spacing%3D%222%22%3E%E4%BB%85%E4%BE%9BDEMO%E6%BC%94%E7%A4%BA%3C%2Ftext%3E%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22320%22%20height%3D%22180%22%20viewBox%3D%220%200%20320%20180%22%3E%3Ctext%20x%3D%2248%22%20y%3D%2298%22%20transform%3D%22rotate(-28%20160%2090)%22%20fill%3D%22%230f172a%22%20fill-opacity%3D%220.30%22%20font-size%3D%2224%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-weight%3D%22800%22%20letter-spacing%3D%222%22%3E%E4%BB%85%E4%BE%9BDEMO%E6%BC%94%E7%A4%BA%3C%2Ftext%3E%3C%2Fsvg%3E");
+  background-size: 320px 180px, 320px 180px;
+  background-position: 0 0, 2px 2px;
+  background-repeat: repeat;
+}
+
+.senior-portrait-root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0;
+}
+
+.senior-portrait-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--senior-page-bg, #2b2b2e);
+}
+
+.senior-portrait-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: var(--senior-decal-opacity, 0.16);
+  background-image: url("../assets/backgrounds/senior-school-background.jpg");
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(0.2) saturate(0.7) contrast(1.05);
+  mix-blend-mode: soft-light;
+}
+
+:root.senior-theme-light .senior-portrait-shell::after {
+  filter: grayscale(0.1) saturate(0.65) brightness(1.12);
+  mix-blend-mode: multiply;
+}
+
+@media (min-width: 900px) and (orientation: landscape) {
+  .senior-portrait-root {
+    padding: 16px;
+    background:
+      radial-gradient(circle at 22% 12%, rgba(168, 137, 243, 0.18), transparent 28%),
+      radial-gradient(circle at 78% 18%, rgba(135, 235, 207, 0.14), transparent 30%),
+      var(--app-root-bg, #1f1f23);
+  }
+
+  .senior-portrait-shell {
+    width: min(430px, calc(100vw - 32px));
+    height: min(932px, calc(100vh - 32px));
+    aspect-ratio: 9 / 19.5;
+    box-shadow:
+      0 26px 70px rgba(0, 0, 0, 0.32),
+      0 0 0 1px rgba(255, 255, 255, 0.10);
+  }
+}
+
 /* Forward: target slides in from right, current slides out left */
 @keyframes slideInFromRight {
   from { transform: translateX(100%); }

@@ -1,30 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { storage } from '../utils/storage';
 import { getAllChapters, getAllQuestions, getSubjectsByGrade } from '../utils/questions';
 import {
-  Bell, Camera, ChevronRight, ClipboardList, Crown, Edit3, Flame, Gem, Gift, Save, Settings, Shirt, Sparkles, Star, Trophy, User, X
+  Camera, ChevronRight, ClipboardList, Crown, Gem, Gift, Play, Save, Settings, Shirt, Sparkles, Trophy, User, X
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { BottomNav } from './BottomNav';
 import { publicAsset } from '../utils/assets';
-
-// ── Dynamic import: all PNG icons from imports folder ──
-const iconModules = import.meta.glob('../../imports/*.png', { eager: true, import: 'default' }) as Record<string, string>;
-
-function getIcon(name: string): string {
-  for (const [path, url] of Object.entries(iconModules)) {
-    if (path.includes(name)) return url;
-  }
-  return '';
-}
+import { SvgAppIcon, type SvgAppIconName } from './SvgAppIcon';
 
 const PUBLIC_ASSET = publicAsset('assets/');
+const SENIOR_ASSET = publicAsset('assets/senior-game/');
+const SENIOR_ASSET_VERSION = '?v=senior-svg-6-20260522';
 
-// ── Subject config: use custom PNG icons ──
+// ── Subject config: use SVG icons ──
 const SUBJECT_CONFIG: Record<string, {
   bg: string;
-  imgUrl: string;
+  svgIcon: SvgAppIconName;
   bannerUrl: string;
   desc: string;
   textbook: string;
@@ -35,7 +28,7 @@ const SUBJECT_CONFIG: Record<string, {
 }> = {
   math: {
     bg: 'bg-gradient-to-br from-blue-100 to-blue-50',
-    imgUrl: getIcon('数学'),
+    svgIcon: 'math',
     bannerUrl: `${PUBLIC_ASSET}math_banner.png`,
     desc: '数与逻辑的世界',
     textbook: '苏教版',
@@ -46,7 +39,7 @@ const SUBJECT_CONFIG: Record<string, {
   },
   english: {
     bg: 'bg-gradient-to-br from-green-100 to-green-50',
-    imgUrl: getIcon('英语'),
+    svgIcon: 'english',
     bannerUrl: `${PUBLIC_ASSET}eng_banner.png`,
     desc: '探索语言的乐趣',
     textbook: '苏教版',
@@ -57,7 +50,7 @@ const SUBJECT_CONFIG: Record<string, {
   },
   physics: {
     bg: 'bg-gradient-to-br from-purple-100 to-purple-50',
-    imgUrl: getIcon('物理'),
+    svgIcon: 'physics',
     bannerUrl: `${PUBLIC_ASSET}phy_banner.png`,
     desc: '发现物理的奥秘',
     textbook: '苏教版',
@@ -68,7 +61,7 @@ const SUBJECT_CONFIG: Record<string, {
   },
   chemistry: {
     bg: 'bg-gradient-to-br from-amber-100 to-amber-50',
-    imgUrl: getIcon('化学'),
+    svgIcon: 'chemistry',
     bannerUrl: `${PUBLIC_ASSET}chem_banner.png`,
     desc: '探索物质的变化',
     textbook: '苏教版',
@@ -97,21 +90,107 @@ const ALL_GRADES = [
 ];
 
 const BADGE_GOAL = 10;
-const LANDSCAPE_BG = publicAsset('assets/横屏底图.png');
-const PORTRAIT_BG = publicAsset('assets/竖屏底图.png');
 
-const statCards = [
-  { key: 'today', label: '今日做题', icon: '今日做题', color: 'text-blue-600', bg: 'bg-blue-50', unit: '题' },
-  { key: 'accuracy', label: '整体正确率', icon: '正确率', color: 'text-emerald-600', bg: 'bg-emerald-50', unit: '%' },
-  { key: 'weak', label: '薄弱知识点', icon: '薄弱知识点', color: 'text-rose-600', bg: 'bg-rose-50', unit: '个' },
+const seniorSubjectArt: Record<string, { images: string[]; bg: string; accent: string }> = {
+  math: {
+    images: [
+      `${SENIOR_ASSET}math-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#A889F3',
+    accent: '#CBB8FF',
+  },
+  english: {
+    images: [
+      `${SENIOR_ASSET}english-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#87EBCF',
+    accent: '#BDF8EA',
+  },
+  physics: {
+    images: [
+      `${SENIOR_ASSET}physics-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#ED8F88',
+    accent: '#FFC7C2',
+  },
+  chemistry: {
+    images: [
+      `${SENIOR_ASSET}chemistry-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#FFAF18',
+    accent: '#FFD986',
+  },
+};
+
+const seniorCategoryFallback = [
+  { id: 'math', label: 'Math', svgIcon: 'math' as SvgAppIconName, color: '#A98BFF', path: '/subject/math' },
+  { id: 'physics', label: 'Physics', svgIcon: 'physics' as SvgAppIconName, color: '#63E7CB', path: '/subject/physics' },
+  { id: 'english', label: 'Grammar', svgIcon: 'english' as SvgAppIconName, color: '#EF8A84', path: '/subject/english' },
+  { id: 'chemistry', label: 'Science', svgIcon: 'chemistry' as SvgAppIconName, color: '#F4B12E', path: '/subject/chemistry' },
 ] as const;
 
-function getEncouragement(accuracy: number, answerCount: number) {
-  if (answerCount === 0) return '今天从第一题开始';
-  if (accuracy >= 90) return '状态很棒';
-  if (accuracy >= 80) return '继续冲满分';
-  if (accuracy >= 60) return '稳步进步中';
-  return '先巩固薄弱点';
+function randomItem<T>(items: T[]) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function randomShuffle<T>(items: T[]) {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function buildSeniorCourseCards(subjects: { id: string; name: string }[], count: number, titleSuffix: string) {
+  const courses = subjects.flatMap(subject => {
+    const art = seniorSubjectArt[subject.id] || seniorSubjectArt.math;
+    return (getAllChapters()[subject.id] || []).map(chapter => ({
+      key: `${subject.id}-${chapter.id}`,
+      title: `${subject.name}\n${chapter.name}${titleSuffix}`,
+      image: randomItem(art.images),
+      bg: art.bg,
+      accent: art.accent,
+      diamonds: Math.floor(Math.random() * 5) + 1,
+      path: `/practice/${subject.id}/${chapter.id}`,
+    }));
+  });
+
+  const fallback = subjects.map(subject => {
+    const art = seniorSubjectArt[subject.id] || seniorSubjectArt.math;
+    return {
+      key: subject.id,
+      title: `${subject.name}\n专项${titleSuffix}`,
+      image: randomItem(art.images),
+      bg: art.bg,
+      accent: art.accent,
+      diamonds: Math.floor(Math.random() * 5) + 1,
+      path: `/subject/${subject.id}`,
+    };
+  });
+
+  const pool = courses.length ? courses : fallback;
+  const picked = randomShuffle(pool).slice(0, Math.min(count, pool.length));
+  while (picked.length < count && pool.length > 0) {
+    picked.push(pool[picked.length % pool.length]);
+  }
+  return picked;
 }
 
 function getSubjectProgress(subjectId: string) {
@@ -146,12 +225,28 @@ function getLowerGradeDayTabs() {
   });
 }
 
+function buildSeniorGreeting(name: string, subjects: { id: string; name: string }[]) {
+  const subject = randomItem(subjects)?.name || '练习';
+  const target = randomItem((subjects || []).flatMap(subjectItem => (
+    getAllChapters()[subjectItem.id] || []
+  )))?.name || '目标';
+
+  return randomItem([
+    `${name}，该练习${subject}了`,
+    `${name}，花 5 分钟保持连续记录`,
+    `${name}，距离${target}只差一节课`,
+    `${name}，不要失去连续记录`,
+    `${name}，让我们回到学习节奏`,
+    `${name}，明天继续保持`,
+    `${name}，建立每日学习习惯`,
+  ]);
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(storage.getCurrentUser());
   const [todayCount, setTodayCount] = useState(0);
   const [overallAccuracy, setOverallAccuracy] = useState(0);
-  const [weakCount, setWeakCount] = useState(0);
   const [availableSubjects, setAvailableSubjects] = useState<any[]>([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileName, setProfileName] = useState('');
@@ -178,9 +273,23 @@ export default function Dashboard() {
       setOverallAccuracy(Math.round((correct / allAnswers.length) * 100));
     }
 
-    const stats = storage.getKnowledgeStats();
-    setWeakCount(stats.filter(s => s.accuracy < 60).length);
   }, [navigate]);
+
+  const seniorSubjects = user
+    ? (availableSubjects.length ? availableSubjects : getSubjectsByGrade(user.grade))
+    : [];
+  const seniorRecentCards = useMemo(
+    () => buildSeniorCourseCards(seniorSubjects, 3, '闯关'),
+    [seniorSubjects]
+  );
+  const seniorNewCards = useMemo(
+    () => buildSeniorCourseCards(seniorSubjects, 4, '挑战'),
+    [seniorSubjects]
+  );
+  const seniorGreeting = useMemo(() => {
+    const name = user?.displayName?.trim() || user?.username || '同学';
+    return buildSeniorGreeting(name, seniorSubjects);
+  }, [seniorSubjects, user?.displayName, user?.username]);
 
   if (!user) return null;
 
@@ -189,13 +298,6 @@ export default function Dashboard() {
   const allAnswers = storage.getAnswers();
   const correctCount = allAnswers.filter(a => a.isCorrect).length;
   const badgeCount = Math.min(BADGE_GOAL, Math.floor(correctCount / 5));
-  const badgeProgress = Math.round((badgeCount / BADGE_GOAL) * 100);
-  const encouragement = getEncouragement(overallAccuracy, allAnswers.length);
-  const statValues = {
-    today: todayCount,
-    accuracy: overallAccuracy,
-    weak: weakCount,
-  };
   const isLowerGradeStudent = user.grade < 4;
   const lowerGradeDayTabs = getLowerGradeDayTabs();
 
@@ -246,7 +348,7 @@ export default function Dashboard() {
       style={{
         background: isLowerGradeStudent
           ? 'linear-gradient(180deg, #4F8FF5 0%, #58B8F6 46%, #8BE2F2 100%)'
-          : '#EEF4FF',
+          : 'var(--senior-page-bg, #2B2B2E)',
       }}
     >
       {isLowerGradeStudent ? (
@@ -257,11 +359,8 @@ export default function Dashboard() {
         </>
       ) : (
         <>
-          <picture className="absolute inset-0 pointer-events-none">
-            <source media="(orientation: landscape)" srcSet={LANDSCAPE_BG} />
-            <img src={PORTRAIT_BG} alt="" className="w-full h-full object-cover" />
-          </picture>
-          <div className="absolute inset-0 pointer-events-none bg-white/15" />
+          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_18%_6%,rgba(255,255,255,0.08),transparent_24%),radial-gradient(circle_at_84%_18%,rgba(168,137,243,0.13),transparent_28%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-32 pointer-events-none bg-gradient-to-t from-[#4E4248]/85 to-transparent" />
         </>
       )}
 
@@ -281,16 +380,12 @@ export default function Dashboard() {
               </div>
             </button>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex h-8 md:h-10 items-center gap-1.5 rounded-full bg-blue-800/35 px-2 md:px-3 text-white shadow-sm ring-1 ring-white/18">
-                <Star size={16} className="text-yellow-300" style={{ fill: 'currentColor' }} />
-                <span style={{ fontSize: 'clamp(14px, 3.8vw, 18px)', fontWeight: 900 }}>{gradeLabel}</span>
-              </div>
               <div className="flex h-8 md:h-10 items-center gap-1.5 md:gap-2 rounded-full bg-blue-800/28 px-2 md:px-3 text-white shadow-sm ring-1 ring-white/18">
-                <Flame size={16} className="text-sky-100" />
+                <SvgAppIcon name="flame" size={16} className="text-sky-100" />
                 <span style={{ fontSize: 'clamp(14px, 3.8vw, 18px)', fontWeight: 900 }}>{todayCount}</span>
               </div>
               <div className="flex h-8 md:h-10 items-center gap-1.5 md:gap-2 rounded-full bg-blue-800/28 px-2 md:px-3 text-white shadow-sm ring-1 ring-white/18">
-                <Gem size={16} className="text-slate-100" />
+                <SvgAppIcon name="gem" size={16} className="text-slate-100" />
                 <span style={{ fontSize: 'clamp(14px, 3.8vw, 18px)', fontWeight: 900 }}>{badgeCount}</span>
               </div>
             </div>
@@ -327,61 +422,29 @@ export default function Dashboard() {
           </div>
         </header>
       ) : (
-        <header className="relative z-10 px-4 md:px-8 pt-4 pb-2 flex items-center justify-between gap-3 flex-shrink-0">
-          <button
-            onClick={openProfileEditor}
-            className="flex items-center gap-3 text-left min-w-0 rounded-2xl px-2 py-1.5 -ml-2 transition-all hover:bg-white/55 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-blue-400"
-          >
-            <div className="relative flex-shrink-0">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-md ring-2 ring-white/80 overflow-hidden">
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-                ) : (
-                  <User size={22} className="text-white" />
-                )}
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
-                <Star size={9} className="text-white" style={{ fill: 'white' }} />
-              </div>
+        <header className="relative z-10 mx-auto w-full max-w-[480px] px-5 pt-7 pb-2 flex-shrink-0 text-white">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="whitespace-pre-line text-white" style={{ fontFamily: 'Georgia, "STKaiti", "KaiTi", serif', fontSize: '31px', fontWeight: 900, lineHeight: 1.08, letterSpacing: 0 }}>
+                {seniorGreeting}
+              </h1>
             </div>
-            <div className="min-w-0 max-w-[54vw] md:max-w-none">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="truncate text-slate-800" style={{ fontWeight: 800, fontSize: '17px', lineHeight: 1.15 }}>{displayName}同学</span>
-                <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded-full"
-                  style={{ fontSize: '11px', fontWeight: 600 }}>{gradeLabel}</span>
-                <Edit3 size={13} className="text-gray-400" />
-              </div>
-              <p className="text-slate-500 truncate mt-1" style={{ fontSize: '12px', lineHeight: 1.35 }}>
-                {encouragement}
-              </p>
+            <div className="mt-8 flex items-center gap-2">
+              <button
+                onClick={() => navigate('/profile')}
+                className="flex h-12 items-center gap-2 rounded-full bg-white/18 px-4 text-white shadow-sm transition-all hover:bg-white/24 active:scale-95 focus-visible:outline-2 focus-visible:outline-white"
+              >
+                <Gem size={26} className="text-white" style={{ fill: 'rgba(255,255,255,0.2)' }} />
+                <span style={{ fontSize: '19px', fontWeight: 900 }}>{Math.max(22, badgeCount * 10 || 22)}</span>
+              </button>
+              <button
+                onClick={() => navigate('/settings')}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-white/12 text-white transition-all hover:bg-white/18 active:scale-95 focus-visible:outline-2 focus-visible:outline-white"
+                aria-label="设置"
+              >
+                <Settings size={22} />
+              </button>
             </div>
-          </button>
-
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="hidden sm:flex items-center gap-2 bg-gradient-to-br from-amber-50 to-yellow-100 rounded-2xl px-3 py-2 border border-yellow-200 min-w-[126px] shadow-sm">
-              <div className="w-7 h-7 bg-amber-400 rounded-full flex items-center justify-center">
-                <Trophy size={14} className="text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-end justify-between gap-2">
-                  <span className="text-amber-500" style={{ fontSize: '10px' }}>勋章</span>
-                  <span className="text-amber-600" style={{ fontWeight: 800, fontSize: '14px', lineHeight: 1 }}>
-                    {badgeCount}<span style={{ fontWeight: 500, fontSize: '10px' }} className="text-amber-500 ml-0.5">枚</span>
-                  </span>
-                </div>
-                <div className="mt-1 h-1.5 bg-amber-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-400 rounded-full" style={{ width: `${badgeProgress}%` }} />
-                </div>
-                <div className="text-amber-500 mt-0.5 whitespace-nowrap" style={{ fontSize: '9px' }}>
-                  已获得{badgeCount}/{BADGE_GOAL}枚
-                </div>
-              </div>
-            </div>
-            <button className="relative w-10 h-10 flex items-center justify-center rounded-full bg-white/55 shadow-sm hover:bg-white/80 active:scale-95 transition-all focus-visible:outline-2 focus-visible:outline-blue-400">
-              <Bell size={20} className="text-gray-500" />
-              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white"
-                style={{ fontSize: '10px', fontWeight: 700, lineHeight: 1 }}>3</span>
-            </button>
           </div>
         </header>
       )}
@@ -436,8 +499,13 @@ export default function Dashboard() {
                           className="rounded-[24px] bg-white/94 p-3.5 shadow-lg border-2 border-white min-h-[328px] flex flex-col"
                           style={{ boxShadow: '0 9px 0 rgba(14, 116, 144, 0.12), 0 16px 26px rgba(37, 99, 235, 0.14)' }}
                         >
-                          <div className="text-slate-900 truncate" style={{ fontSize: '22px', fontWeight: 900, lineHeight: 1.15 }}>
-                            {subject.name} | {cfg.textbook}
+                          <div className="flex items-center gap-2 text-slate-900">
+                            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+                              <SvgAppIcon name={cfg.svgIcon} size={23} strokeWidth={2.4} />
+                            </span>
+                            <span className="truncate" style={{ fontSize: '22px', fontWeight: 900, lineHeight: 1.15 }}>
+                              {subject.name} | {cfg.textbook}
+                            </span>
                           </div>
 
                           <button
@@ -462,11 +530,12 @@ export default function Dashboard() {
                                 {Array.from({ length: 3 }).map((_, starIndex) => {
                                   const filled = Math.ceil(progress / 34) > starIndex;
                                   return (
-                                    <Star
+                                    <SvgAppIcon
                                       key={starIndex}
+                                      name="star"
                                       size={14}
                                       className={filled ? 'text-amber-400' : 'text-slate-300'}
-                                      style={{ fill: filled ? 'currentColor' : 'none' }}
+                                      filled={filled}
                                     />
                                   );
                                 })}
@@ -483,7 +552,7 @@ export default function Dashboard() {
                             >
                               <span style={{ fontSize: '22px', fontWeight: 900 }}>去学习</span>
                               <span className="flex items-center gap-1 text-white/95" style={{ fontSize: '18px', fontWeight: 900 }}>
-                                +10 <Trophy size={20} />
+                                +10 <SvgAppIcon name="trophy" size={20} filled />
                               </span>
                             </button>
                           </div>
@@ -496,11 +565,10 @@ export default function Dashboard() {
 
               <div className="mx-auto flex w-full max-w-xl items-center justify-around rounded-[26px] bg-white/46 px-4 py-2 shadow-lg ring-1 ring-white/55 backdrop-blur">
                 {[
-                  { label: '学习计划', icon: ClipboardList, action: () => navigate('/dashboard'), active: true },
-                  { label: '同步学习', icon: Gem, action: () => navigate('/knowledge-map'), active: false },
-                  { label: '专项提升', icon: Flame, action: () => navigate('/weakness'), active: false },
+                  { label: '学习计划', icon: 'clipboard' as SvgAppIconName, action: () => navigate('/dashboard'), active: true },
+                  { label: '学科闯关', icon: 'map' as SvgAppIconName, action: () => navigate('/subject/math'), active: false },
+                  { label: '专项提升', icon: 'flame' as SvgAppIconName, action: () => navigate('/weakness'), active: false },
                 ].map(item => {
-                  const Icon = item.icon;
                   return (
                     <button
                       key={item.label}
@@ -509,7 +577,7 @@ export default function Dashboard() {
                         item.active ? 'text-blue-700' : 'text-slate-500 hover:bg-white/35'
                       }`}
                     >
-                      <Icon size={24} className={item.active ? 'text-orange-400' : 'text-sky-500'} />
+                      <SvgAppIcon name={item.icon} size={24} className={item.active ? 'text-orange-400' : 'text-sky-500'} filled={item.icon !== 'clipboard'} />
                       <span className="truncate" style={{ fontSize: '15px', fontWeight: 900 }}>{item.label}</span>
                     </button>
                   );
@@ -518,114 +586,109 @@ export default function Dashboard() {
             </>
           ) : (
             <>
-              <div
-                className="relative overflow-hidden rounded-[28px] px-3.5 py-4 md:px-5 md:py-5 border border-white/85"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(240,249,255,0.94) 52%, rgba(236,253,245,0.84) 100%)',
-                  boxShadow: '0 14px 34px rgba(65, 98, 165, 0.14), inset 0 1px 0 rgba(255,255,255,0.95)',
-                }}
-              >
-                <div className="flex flex-col lg:flex-row lg:items-stretch gap-3 md:gap-4">
-                  <div className="grid grid-cols-3 gap-0 flex-1 rounded-2xl bg-white/65 border border-white/85 overflow-hidden">
-                    {statCards.map((stat, index) => (
-                      <div key={stat.key} className={`px-2.5 py-3 md:px-4 md:py-3.5 min-w-0 ${index > 0 ? 'border-l border-white/90' : ''}`}>
-                        <div className="flex items-center justify-center md:justify-start gap-2 md:gap-3">
-                          <img src={getIcon(stat.icon)} alt={stat.label} className="w-8 h-8 md:w-10 md:h-10 object-contain flex-shrink-0" />
-                          <div className="min-w-0">
-                            <span className="block text-slate-500 truncate" style={{ fontSize: '11px', fontWeight: 800 }}>{stat.label}</span>
-                            <span className={`${stat.color} block whitespace-nowrap`} style={{ fontWeight: 900, fontSize: 'clamp(18px, 5vw, 24px)', lineHeight: 1.05 }}>
-                              {statValues[stat.key]}<span style={{ fontSize: '12px', fontWeight: 800 }} className="ml-0.5">{stat.unit}</span>
-                            </span>
-                          </div>
+              <section className="mx-auto w-full max-w-[480px] text-white">
+                <div className="mb-4 flex items-center justify-between px-1">
+                  <h2 className="uppercase text-white/88" style={{ fontSize: '14px', fontWeight: 900, letterSpacing: 0 }}>最近</h2>
+                </div>
+                <div className="-mx-3 flex snap-x gap-4 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {seniorRecentCards.map((card, index) => (
+                    <button
+                      key={`${card.key}-${index}`}
+                      onClick={() => navigate(card.path)}
+                      className="relative h-[182px] w-[264px] flex-shrink-0 snap-start overflow-hidden rounded-[8px] text-left transition-transform active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-white"
+                      style={{ background: card.bg }}
+                    >
+                      <div className="absolute right-[-16px] bottom-[-34px] h-[132px] w-[132px] rounded-full" style={{ background: card.accent }} />
+                      <div className="absolute right-4 top-4 z-10 flex h-8 items-center gap-1.5 rounded-full bg-white/28 px-3 text-white shadow-sm backdrop-blur-sm">
+                        <Gem size={16} className="text-white" style={{ fill: 'rgba(255,255,255,0.28)' }} />
+                        <span style={{ fontSize: '14px', fontWeight: 900 }}>{card.diamonds}</span>
+                      </div>
+                      <div className="absolute left-5 top-6 whitespace-pre-line text-white" style={{ fontFamily: '"STKaiti", "KaiTi", "Kaiti SC", "华文楷体", Georgia, serif', fontSize: '30px', fontWeight: 900, lineHeight: 1.04, letterSpacing: 0 }}>
+                        {card.title}
+                      </div>
+                      <img src={card.image} alt="" className="absolute -bottom-4 right-[-18px] h-[140px] w-[198px] object-contain" />
+                      <div className="absolute bottom-[-16px] left-6 h-[78px] w-[78px] rounded-full border-[5px] border-[#2B2B2E] bg-white/20 p-1">
+                        <div className="flex h-full w-full items-center justify-center rounded-full border-2 border-white/85 text-white" style={{ background: 'rgba(255,255,255,0.12)' }}>
+                          <span style={{ fontSize: '15px', fontWeight: 900 }}>PLAY</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
 
-                  <button
-                    onClick={() => navigate('/weakness')}
-                    className="relative overflow-hidden rounded-2xl px-4 py-3 lg:w-[190px] text-left text-white transition-all hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-indigo-400"
-                    style={{
-                      background: 'linear-gradient(135deg, #6366F1 0%, #3B82F6 54%, #22C55E 100%)',
-                      boxShadow: '0 12px 20px rgba(79, 70, 229, 0.22), inset 0 1px 0 rgba(255,255,255,0.42)',
-                    }}
-                  >
-                    <div className="absolute -right-5 -bottom-6 w-24 h-24 rounded-full bg-white/16" />
-                    <div className="relative flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div style={{ fontWeight: 900, fontSize: '16px', lineHeight: 1.15 }}>薄弱训练</div>
-                        <div className="mt-1 text-white/82" style={{ fontSize: '12px', fontWeight: 700, lineHeight: 1.3 }}>先测评再刷题</div>
-                      </div>
-                      <div className="w-10 h-10 rounded-full bg-white/24 flex items-center justify-center flex-shrink-0">
-                        <ChevronRight size={20} strokeWidth={3} />
-                      </div>
-                    </div>
+              <button
+                onClick={() => navigate('/weakness')}
+                className="mx-auto mt-6 flex h-14 w-full max-w-[480px] items-center justify-between rounded-[8px] bg-white/9 px-4 text-white transition-colors hover:bg-white/13 active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-white"
+              >
+                <span className="flex items-center gap-3 min-w-0">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#63E7CB] text-white">
+                    <Sparkles size={22} />
+                  </span>
+                  <span className="min-w-0 text-left">
+                    <span className="block truncate" style={{ fontSize: '15px', fontWeight: 800 }}>AI 诊断训练</span>
+                    <span className="mt-0.5 block text-white/62" style={{ fontSize: '12px', fontWeight: 500 }}>今日 {todayCount} 题 · 正确率 {overallAccuracy}%</span>
+                  </span>
+                </span>
+                <span className="flex h-9 items-center gap-1 rounded-full bg-white/18 px-3">
+                  <Play size={15} fill="currentColor" />
+                  <span style={{ fontSize: '13px', fontWeight: 900 }}>PLAY</span>
+                </span>
+              </button>
+
+              <section className="mx-auto mt-8 w-full max-w-[480px] text-white">
+                <div className="mb-4 flex items-center justify-between px-1">
+                  <h2 className="uppercase text-white/88" style={{ fontSize: '14px', fontWeight: 900, letterSpacing: 0 }}>分类</h2>
+                  <button onClick={() => navigate('/knowledge-map')} className="flex items-center gap-1 text-white/76 hover:text-white focus-visible:outline-2 focus-visible:outline-white" style={{ fontSize: '15px', fontWeight: 500 }}>
+                    查看全部 <ChevronRight size={15} />
                   </button>
                 </div>
-              </div>
-
-              {/* ── Subject Cards ── */}
-              <div
-                className="relative rounded-[28px] bg-white/82 border border-white/85 shadow-sm p-3.5 md:p-5"
-                style={{ boxShadow: '0 10px 24px rgba(65, 98, 165, 0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
-              >
-                <div className="mb-3 md:mb-4 flex items-center justify-end gap-3">
-                  <div className="hidden sm:flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 border border-amber-100">
-                    <Trophy size={15} className="text-amber-500" />
-                    <span className="text-amber-600" style={{ fontSize: '12px', fontWeight: 900 }}>{badgeCount}/{BADGE_GOAL}枚勋章</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-4">
-                  {availableSubjects.map(subject => {
-                    const cfg = SUBJECT_CONFIG[subject.id];
-                    if (!cfg) return null;
-                    const progress = getSubjectProgress(subject.id);
+                <div className="-mx-3 flex gap-4 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {(availableSubjects.length ? availableSubjects : seniorCategoryFallback).map(subject => {
+                    const fallback = seniorCategoryFallback.find(item => item.id === subject.id) || seniorCategoryFallback[0];
+                    const label = 'name' in subject ? subject.name : fallback.label;
+                    const path = 'id' in subject ? `/subject/${subject.id}` : fallback.path;
                     return (
                       <button
                         key={subject.id}
-                        onClick={() => navigate(`/subject/${subject.id}`)}
-                        className={`${cfg.bg} rounded-2xl overflow-hidden shadow-sm hover:shadow-md active:scale-[0.98] transition-all border ${cfg.cardBorder} text-left flex flex-col min-h-[178px] focus-visible:outline-2 focus-visible:outline-blue-400`}
+                        onClick={() => navigate(path)}
+                        className="flex h-[114px] w-[106px] flex-shrink-0 flex-col items-center justify-center gap-3 rounded-[8px] bg-white/8 transition-colors hover:bg-white/12 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-white"
                       >
-                        {/* Illustration – scale to max without cropping */}
-                        <div className="flex-1 min-h-[82px] flex items-center justify-center p-3 pt-4">
-                          <ImageWithFallback
-                            src={cfg.imgUrl}
-                            alt={subject.name}
-                            className="w-full h-full max-h-24 object-contain"
-                          />
-                        </div>
-
-                        {/* Bottom section */}
-                        <div className="p-3 pt-2.5 bg-white/36">
-                          <div className="flex items-end justify-between">
-                            <div className="min-w-0">
-                              <div style={{ fontWeight: 700, fontSize: '15px' }} className="text-gray-800">
-                                {subject.name}
-                              </div>
-                              <div style={{ fontSize: '11px' }} className="text-gray-500 mt-0.5 truncate">
-                                {cfg.desc}
-                              </div>
-                            </div>
-                            <div className={`w-7 h-7 ${cfg.btnBg} rounded-full flex items-center justify-center shadow-sm flex-shrink-0 ml-2`}>
-                              <ChevronRight size={14} className="text-white" />
-                            </div>
-                          </div>
-                          <div className="mt-3">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-gray-500" style={{ fontSize: '10px', fontWeight: 600 }}>学习进度</span>
-                              <span className="text-gray-700" style={{ fontSize: '10px', fontWeight: 700 }}>已完成{progress}%</span>
-                            </div>
-                            <div className="h-2 bg-white/75 rounded-full overflow-hidden shadow-inner">
-                              <div className={`h-full rounded-full ${cfg.progress}`} style={{ width: `${progress}%` }} />
-                            </div>
-                          </div>
-                        </div>
+                        <span className="relative flex h-14 w-14 items-center justify-center rounded-full" style={{ background: fallback.color }}>
+                          <SvgAppIcon name={fallback.svgIcon} size={32} className="text-white" strokeWidth={2.8} />
+                        </span>
+                        <span className="max-w-[86px] truncate text-white/92" style={{ fontSize: '17px', fontWeight: 500 }}>{label}</span>
                       </button>
                     );
                   })}
                 </div>
-              </div>
+              </section>
+
+              <section className="mx-auto mt-8 w-full max-w-[480px] text-white">
+                <div className="mb-4 flex items-center justify-between px-1">
+                  <h2 className="uppercase text-white/88" style={{ fontSize: '14px', fontWeight: 900, letterSpacing: 0 }}>新练习</h2>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {seniorNewCards.map((card, index) => (
+                    <button
+                      key={`${card.key}-${index}`}
+                      onClick={() => navigate(card.path)}
+                      className="relative h-[206px] overflow-hidden rounded-[8px] text-left transition-transform active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-white"
+                      style={{ background: card.bg }}
+                    >
+                      <div className="absolute right-[-36px] bottom-[-44px] h-[132px] w-[132px] rounded-full" style={{ background: card.accent }} />
+                      <div className="absolute right-3 top-3 z-10 flex h-8 items-center gap-1.5 rounded-full bg-white/28 px-3 text-white shadow-sm backdrop-blur-sm">
+                        <Gem size={16} className="text-white" style={{ fill: 'rgba(255,255,255,0.28)' }} />
+                        <span style={{ fontSize: '14px', fontWeight: 900 }}>{card.diamonds}</span>
+                      </div>
+                      <div className="absolute left-5 top-7 whitespace-pre-line text-white" style={{ fontFamily: '"STKaiti", "KaiTi", "Kaiti SC", "华文楷体", Georgia, serif', fontSize: '28px', fontWeight: 900, lineHeight: 1.04, letterSpacing: 0 }}>
+                        {card.title}
+                      </div>
+                      <img src={card.image} alt="" className="absolute -bottom-7 right-[-28px] h-[142px] w-[190px] object-contain" />
+                    </button>
+                  ))}
+                </div>
+              </section>
             </>
           )}
 

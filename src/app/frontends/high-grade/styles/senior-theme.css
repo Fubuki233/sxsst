@@ -1,0 +1,218 @@
+:root {
+  --senior-page-bg: #2b2b2e;
+  --senior-radial-bg: radial-gradient(circle at 18% 6%, rgba(255, 255, 255, 0.08), transparent 24%), radial-gradient(circle at 84% 18%, rgba(168, 137, 243, 0.13), transparent 28%);
+  --senior-bottom-fade: linear-gradient(to top, rgba(78, 66, 72, 0.85), rgba(78, 66, 72, 0));
+  --senior-map-card-bg: rgba(255, 255, 255, 0.10);
+  --senior-map-card-text: #f8fafc;
+  --senior-map-muted-text: rgba(248, 250, 252, 0.58);
+  --senior-map-line: rgba(255, 255, 255, 0.18);
+  --senior-map-progress-track: rgba(255, 255, 255, 0.16);
+  --senior-map-card-shadow: 0 18px 38px rgba(0, 0, 0, 0.16);
+  --senior-practice-card-bg: rgba(255, 255, 255, 0.10);
+  --senior-practice-card-text: #f8fafc;
+  --senior-practice-muted-text: rgba(248, 250, 252, 0.62);
+  --senior-practice-option-bg: rgba(255, 255, 255, 0.08);
+  --senior-practice-option-border: rgba(255, 255, 255, 0.16);
+  --senior-practice-track: rgba(255, 255, 255, 0.16);
+  --senior-calendar-studied-bg: rgba(22, 209, 197, 0.22);
+  --senior-calendar-studied-text: #7ff4ec;
+  --senior-calendar-studied-subtext: rgba(127, 244, 236, 0.78);
+  --senior-calendar-empty-text: rgba(248, 250, 252, 0.46);
+  --senior-decal-opacity: 0.16;
+  --senior-decal-color: rgba(255, 255, 255, 0.76);
+}
+
+:root.senior-theme-enabled.senior-theme-light {
+  color-scheme: light;
+  --app-root-bg: #f4f1ff;
+  --senior-page-bg: linear-gradient(180deg, #fff9ff 0%, #f4f1ff 48%, #eef7ff 100%);
+  --senior-radial-bg: radial-gradient(circle at 18% 6%, rgba(168, 137, 243, 0.18), transparent 24%), radial-gradient(circle at 84% 18%, rgba(135, 235, 207, 0.2), transparent 28%);
+  --senior-bottom-fade: linear-gradient(to top, rgba(226, 217, 244, 0.9), rgba(226, 217, 244, 0));
+  --senior-map-card-bg: rgba(255, 255, 255, 0.92);
+  --senior-map-card-text: #1f2937;
+  --senior-map-muted-text: #94a3b8;
+  --senior-map-line: #e2e8f0;
+  --senior-map-progress-track: #eef2f7;
+  --senior-map-card-shadow: 0 18px 38px rgba(35, 43, 69, 0.08);
+  --senior-practice-card-bg: rgba(255, 255, 255, 0.96);
+  --senior-practice-card-text: #334155;
+  --senior-practice-muted-text: #94a3b8;
+  --senior-practice-option-bg: rgba(255, 255, 255, 0.92);
+  --senior-practice-option-border: #e8edf4;
+  --senior-practice-track: #dfe7ef;
+  --senior-calendar-studied-bg: #16d1c5;
+  --senior-calendar-studied-text: #ffffff;
+  --senior-calendar-studied-subtext: #0f766e;
+  --senior-calendar-empty-text: rgba(51, 45, 63, 0.46);
+  --senior-decal-opacity: 0.12;
+  --senior-decal-color: rgba(105, 85, 136, 0.42);
+}
+
+:root.senior-theme-enabled.senior-theme-dark {
+  color-scheme: dark;
+  --app-root-bg: #2b2b2e;
+  --senior-page-bg: #2b2b2e;
+  --senior-radial-bg: radial-gradient(circle at 18% 6%, rgba(255, 255, 255, 0.08), transparent 24%), radial-gradient(circle at 84% 18%, rgba(168, 137, 243, 0.13), transparent 28%);
+  --senior-bottom-fade: linear-gradient(to top, rgba(78, 66, 72, 0.85), rgba(78, 66, 72, 0));
+  --senior-map-card-bg: rgba(255, 255, 255, 0.10);
+  --senior-map-card-text: #f8fafc;
+  --senior-map-muted-text: rgba(248, 250, 252, 0.58);
+  --senior-map-line: rgba(255, 255, 255, 0.18);
+  --senior-map-progress-track: rgba(255, 255, 255, 0.16);
+  --senior-map-card-shadow: 0 18px 38px rgba(0, 0, 0, 0.16);
+  --senior-practice-card-bg: rgba(255, 255, 255, 0.10);
+  --senior-practice-card-text: #f8fafc;
+  --senior-practice-muted-text: rgba(248, 250, 252, 0.62);
+  --senior-practice-option-bg: rgba(255, 255, 255, 0.08);
+  --senior-practice-option-border: rgba(255, 255, 255, 0.16);
+  --senior-practice-track: rgba(255, 255, 255, 0.16);
+  --senior-calendar-studied-bg: rgba(22, 209, 197, 0.22);
+  --senior-calendar-studied-text: #7ff4ec;
+  --senior-calendar-studied-subtext: rgba(127, 244, 236, 0.78);
+  --senior-calendar-empty-text: rgba(248, 250, 252, 0.46);
+  --senior-decal-opacity: 0.16;
+  --senior-decal-color: rgba(255, 255, 255, 0.76);
+}
+
+:root.senior-theme-enabled.senior-theme-light [class*="bg-[#2B2B2E]"] {
+  background: var(--senior-page-bg) !important;
+  color: #2f293a !important;
+}
+
+:root.senior-theme-enabled [class*="bg-[radial-gradient"] {
+  background-image: var(--senior-radial-bg) !important;
+  opacity: 1;
+}
+
+:root.senior-theme-enabled [class*="from-[#4E4248]"] {
+  background-image: var(--senior-bottom-fade) !important;
+}
+
+:root.senior-theme-enabled.senior-theme-light [class*="bg-[#5B5356]"] {
+  background-color: rgba(255, 255, 255, 0.84) !important;
+  color: #342f3b !important;
+  border-color: rgba(102, 83, 126, 0.16) !important;
+  box-shadow: 0 -14px 30px rgba(92, 74, 124, 0.12) !important;
+}
+
+:root.senior-theme-enabled.senior-theme-light [class*="text-white"] {
+  color: #332d3f !important;
+}
+
+:root.senior-theme-enabled.senior-theme-light [class*="placeholder:text-white"]::placeholder {
+  color: rgba(51, 45, 63, 0.45) !important;
+}
+
+:root.senior-theme-enabled.senior-theme-light [class*="bg-white/"] {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+:root.senior-theme-enabled.senior-theme-light [class*="hover:bg-white/"]:hover {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+:root.senior-theme-enabled.senior-theme-light [class*="border-white"] {
+  border-color: rgba(105, 85, 136, 0.18) !important;
+}
+
+:root.senior-theme-enabled.senior-theme-light [class*="outline-white"] {
+  outline-color: rgba(79, 70, 229, 0.74) !important;
+}
+
+:root.senior-theme-enabled.senior-theme-light [class*="bg-[#2B2B2E]/"] {
+  background-color: rgba(63, 54, 83, 0.12) !important;
+}
+
+:root.senior-theme-enabled.senior-theme-light input[class*="bg-white/"] {
+  background-color: rgba(255, 255, 255, 0.78) !important;
+  color: #332d3f !important;
+  box-shadow: inset 0 0 0 1px rgba(105, 85, 136, 0.12);
+}
+
+:root.senior-theme-enabled.senior-theme-light .senior-theme-toggle {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(105, 85, 136, 0.18) !important;
+  color: #332d3f !important;
+  box-shadow: 0 12px 28px rgba(92, 74, 124, 0.14) !important;
+}
+
+:root.senior-theme-enabled.senior-theme-light img[src*="/senior-game/"] {
+  filter: drop-shadow(0 10px 16px rgba(83, 70, 108, 0.12));
+}
+
+.senior-score-ring {
+  animation: senior-score-ring-fill 950ms cubic-bezier(0.2, 0.78, 0.18, 1) both;
+}
+
+.senior-score-number {
+  animation: senior-score-number-pop 760ms cubic-bezier(0.2, 0.78, 0.18, 1) both;
+}
+
+.senior-score-check {
+  transform: scale(0);
+  animation: senior-score-check-pop 520ms cubic-bezier(0.18, 0.9, 0.24, 1.35) 720ms both;
+}
+
+.senior-score-check-icon {
+  opacity: 0;
+  stroke-dasharray: 80;
+  stroke-dashoffset: 80;
+  animation: senior-score-check-draw 420ms ease-out 880ms both;
+}
+
+@keyframes senior-score-ring-fill {
+  from {
+    stroke-dashoffset: var(--score-ring-full, 540.35);
+  }
+}
+
+@keyframes senior-score-number-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes senior-score-check-pop {
+  0% {
+    transform: scale(0);
+  }
+  72% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes senior-score-check-draw {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 80;
+  }
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .senior-score-ring,
+  .senior-score-number,
+  .senior-score-check,
+  .senior-score-check-icon {
+    animation: none;
+    opacity: 1;
+  }
+  .senior-score-check {
+    transform: scale(1);
+  }
+}

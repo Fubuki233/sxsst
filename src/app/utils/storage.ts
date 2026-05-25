@@ -57,6 +57,28 @@ class Storage {
     return true;
   }
 
+  startDemoSession(user: User): User {
+    const users = this.getUsers();
+    const idx = users.findIndex(u => u.username === user.username);
+    const nextUser = {
+      ...user,
+      displayName: user.displayName?.trim() || user.username,
+    };
+
+    if (idx >= 0) {
+      users[idx] = {
+        ...users[idx],
+        ...nextUser,
+      };
+    } else {
+      users.push(nextUser);
+    }
+
+    this.saveUsers(users);
+    localStorage.setItem('currentUser', JSON.stringify(nextUser));
+    return nextUser;
+  }
+
   login(username: string, password: string): User | null {
     const users = this.getUsers();
     const user = users.find(u => u.username === username && u.password === password);

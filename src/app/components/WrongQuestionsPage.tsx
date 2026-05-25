@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { storage, Answer } from '../utils/storage';
 import { getAllQuestions } from '../utils/questions';
-import { AlertCircle, CheckCircle, Clock3, Lightbulb, RotateCcw, Search, Target, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock3, Gem, Lightbulb, Play, RotateCcw, Search, Target, XCircle } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { publicAsset } from '../utils/assets';
 
 const ASSET = publicAsset('assets/');
+const SENIOR_ASSET = publicAsset('assets/senior-game/');
+const SENIOR_ASSET_VERSION = '?v=senior-svg-6-20260522';
 const LANDSCAPE_BG = `${ASSET}横屏背景图.png`;
 const PORTRAIT_BG = `${ASSET}竖屏背景图.png`;
 
@@ -25,6 +27,97 @@ const SUBJECT_LABELS: Record<string, string> = {
   chemistry: '化学',
 };
 
+const seniorWrongSubjectArt: Record<string, { label: string; images: string[]; bg: string; accent: string }> = {
+  all: {
+    label: '全部',
+    images: [`${SENIOR_ASSET}math-1.svg${SENIOR_ASSET_VERSION}`],
+    bg: '#3A3A3D',
+    accent: '#57575B',
+  },
+  math: {
+    label: '数学',
+    images: [
+      `${SENIOR_ASSET}math-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}math-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#A889F3',
+    accent: '#CBB8FF',
+  },
+  english: {
+    label: '英语',
+    images: [
+      `${SENIOR_ASSET}english-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}english-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#87EBCF',
+    accent: '#BDF8EA',
+  },
+  physics: {
+    label: '物理',
+    images: [
+      `${SENIOR_ASSET}physics-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}physics-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#ED8F88',
+    accent: '#FFC7C2',
+  },
+  chemistry: {
+    label: '化学',
+    images: [
+      `${SENIOR_ASSET}chemistry-1.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-2.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-3.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-4.svg${SENIOR_ASSET_VERSION}`,
+      `${SENIOR_ASSET}chemistry-5.svg${SENIOR_ASSET_VERSION}`,
+    ],
+    bg: '#FFAF18',
+    accent: '#FFD986',
+  },
+};
+
+const seniorWrongCardPalettes = [
+  { bg: '#FFAF18', accent: '#FFD986' },
+  { bg: '#FF6058', accent: '#FFAAA6' },
+  { bg: '#A889F3', accent: '#CBB8FF' },
+  { bg: '#E8669A', accent: '#F59FC2' },
+  { bg: '#87EBCF', accent: '#BDF8EA' },
+  { bg: '#ED8F88', accent: '#FFC7C2' },
+];
+
+const seniorWrongColumnHeights = [
+  [246, 306, 268, 342, 286],
+  [322, 258, 356, 278, 330],
+];
+
+function getStableSeed(value: string) {
+  return value.split('').reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
+}
+
+function getWrongReward(questionId: string) {
+  const seed = getStableSeed(questionId);
+  return (seed % 5) + 1;
+}
+
+function getWrongCardStyle(questionId: string, index: number) {
+  const seed = getStableSeed(questionId);
+  const column = index % 2;
+  const row = Math.floor(index / 2);
+  const heights = seniorWrongColumnHeights[column];
+  return {
+    height: heights[(seed + row) % heights.length],
+    palette: seniorWrongCardPalettes[seed % seniorWrongCardPalettes.length],
+  };
+}
+
 function formatWrongTime(timestamp: number) {
   const date = new Date(timestamp);
   const today = new Date();
@@ -40,6 +133,8 @@ export default function WrongQuestionsPage() {
   const [wrongAnswers, setWrongAnswers] = useState<Answer[]>([]);
   const [filter, setFilter] = useState<string>('all');
   const [searchText, setSearchText] = useState('');
+  const currentUser = storage.getCurrentUser();
+  const isSeniorStudent = currentUser?.grade !== undefined && currentUser.grade >= 4;
 
   const questions = useMemo(() => getAllQuestions(), []);
   const questionMap = useMemo(() => new Map(questions.map(q => [q.id, q])), [questions]);
@@ -98,6 +193,125 @@ export default function WrongQuestionsPage() {
       question.answer,
     ].some(text => text.toLowerCase().includes(keyword));
   });
+
+  if (isSeniorStudent) {
+    const seniorFilters = FILTERS.filter(item => item.id === 'all' || subjectCounts[item.id] || item.id === filter);
+    const seniorWrongColumns = [0, 1].map(column =>
+      filteredAnswers
+        .map((answer, index) => ({ answer, index }))
+        .filter(item => item.index % 2 === column)
+    );
+
+    return (
+      <div className="size-full flex flex-col relative overflow-hidden [background:var(--senior-page-bg)] text-white">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_18%_6%,rgba(255,255,255,0.08),transparent_24%),radial-gradient(circle_at_84%_18%,rgba(168,137,243,0.13),transparent_28%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-32 pointer-events-none bg-gradient-to-t from-[#4E4248]/85 to-transparent" />
+
+        <div className="relative z-10 flex-1 overflow-auto px-4 pt-8 pb-7">
+          <div className="mx-auto w-full max-w-[640px]">
+            <h1 className="text-white" style={{ fontFamily: 'Georgia, "STKaiti", "KaiTi", serif', fontSize: '44px', fontWeight: 900, lineHeight: 1, letterSpacing: 0 }}>
+              错题本
+            </h1>
+
+            <div className="relative mt-7">
+              <Search size={28} className="absolute left-5 top-1/2 -translate-y-1/2 text-white" />
+              <input
+                value={searchText}
+                onChange={event => setSearchText(event.target.value)}
+                placeholder="搜索题目、知识点..."
+                className="h-[64px] w-full rounded-[8px] border-0 bg-white/14 pl-16 pr-4 text-white outline-none placeholder:text-white/50 focus:bg-white/18"
+                style={{ fontSize: '22px', fontWeight: 600 }}
+              />
+            </div>
+
+            <div className="-mx-4 mt-6 flex gap-3 overflow-x-auto px-4 pb-1 sm:mt-8 sm:gap-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {seniorFilters.map(item => {
+                const active = filter === item.id;
+                const art = seniorWrongSubjectArt[item.id] || seniorWrongSubjectArt.math;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setFilter(item.id)}
+                    className={`flex h-[98px] w-[88px] flex-shrink-0 flex-col items-center justify-center gap-1.5 rounded-[8px] transition-all active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-white sm:h-[132px] sm:w-[130px] sm:gap-3 ${
+                      active ? 'bg-white/17' : 'bg-white/9 hover:bg-white/12'
+                    }`}
+                  >
+                    <span className="relative flex h-11 w-11 items-center justify-center sm:h-16 sm:w-16">
+                      <span className="absolute inset-1 rounded-[14px] rotate-[-9deg] sm:rounded-[18px]" style={{ background: art.bg }} />
+                      <img src={art.images[0]} alt="" className="relative h-11 w-11 object-contain sm:h-16 sm:w-16" />
+                    </span>
+                    <span className="max-w-[74px] truncate text-white sm:max-w-[108px]" style={{ fontSize: 'clamp(13px, 3.8vw, 20px)', fontWeight: 500 }}>
+                      {art.label}
+                    </span>
+                    <span className="text-white/48" style={{ fontSize: '11px', fontWeight: 900 }}>{subjectCounts[item.id] || 0}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <section className="mt-9">
+              <h2 className="mb-5 text-white/86" style={{ fontSize: '17px', fontWeight: 900, letterSpacing: 0 }}>推荐重练</h2>
+
+              {filteredAnswers.length === 0 ? (
+                <div className="rounded-[8px] bg-white/10 px-6 py-12 text-center">
+                  <CheckCircle size={46} className="mx-auto text-[#87EBCF]" />
+                  <div className="mt-4 text-white" style={{ fontSize: '22px', fontWeight: 900 }}>暂无错题</div>
+                  <div className="mt-2 text-white/55" style={{ fontSize: '14px', fontWeight: 700 }}>当前筛选下没有错题记录</div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-5 items-start">
+                  {seniorWrongColumns.map((columnItems, columnIndex) => (
+                    <div key={columnIndex} className="flex min-w-0 flex-col gap-5">
+                      {columnItems.map(({ answer, index }) => {
+                        const question = questionMap.get(answer.questionId);
+                        if (!question) return null;
+                        const art = seniorWrongSubjectArt[question.subject] || seniorWrongSubjectArt.math;
+                        const image = art.images[index % art.images.length];
+                        const cardStyle = getWrongCardStyle(answer.questionId, index);
+
+                        return (
+                          <button
+                            key={answer.questionId}
+                            onClick={() => handleRetry(answer.questionId)}
+                            className="relative w-full overflow-hidden rounded-[8px] p-4 text-left transition-transform active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-white"
+                            style={{ minHeight: `${cardStyle.height}px`, background: cardStyle.palette.bg }}
+                          >
+                            <div className="absolute right-[-50px] bottom-[-44px] h-40 w-40 rounded-full opacity-85" style={{ background: cardStyle.palette.accent }} />
+                            <div className="absolute right-[-34px] bottom-[-18px] h-36 w-44">
+                              <img src={image} alt="" className="h-full w-full object-contain" />
+                            </div>
+                            <div className="relative z-10 flex h-9 w-fit items-center gap-1.5 rounded-full bg-white/25 px-3 text-white">
+                              <Gem size={18} style={{ fill: 'rgba(255,255,255,0.28)' }} />
+                              <span style={{ fontSize: '16px', fontWeight: 900 }}>{getWrongReward(answer.questionId)}</span>
+                            </div>
+                            <div className="relative z-10 mt-5 whitespace-pre-line text-white" style={{ fontFamily: 'Georgia, "STKaiti", "KaiTi", serif', fontSize: '26px', fontWeight: 900, lineHeight: 1.08 }}>
+                              {question.knowledgePoint}
+                            </div>
+                            <div className="relative z-10 mt-3 max-w-[92%] text-white/78" style={{ fontSize: '13px', fontWeight: 700, lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                              {question.question}
+                            </div>
+                            <div className="absolute bottom-4 left-4 z-10 flex h-9 items-center gap-1 rounded-full bg-[#2B2B2E]/34 px-3 text-white backdrop-blur-sm">
+                              <Play size={14} fill="currentColor" />
+                              <span style={{ fontSize: '12px', fontWeight: 900 }}>重做</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex-shrink-0">
+          <BottomNav />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="size-full flex flex-col relative overflow-hidden"

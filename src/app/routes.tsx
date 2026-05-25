@@ -1,5 +1,6 @@
 import { createHashRouter } from "react-router";
 import Root from "./components/Root";
+import UiIndexPage from "./components/UiIndexPage";
 import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import SubjectPage from "./components/SubjectPage";
@@ -19,14 +20,40 @@ import QuestionManage from "./components/QuestionManage";
 import ManageContent from "./components/ManageContent";
 import CourseManagement from "./components/CourseManagement";
 import ClassManagement from "./components/ClassManagement";
+import LegacyDashboard from "./components/legacy/Dashboard";
+import LegacySubjectPage from "./components/legacy/SubjectPage";
+import LegacyPracticePage from "./components/legacy/PracticePage";
+import LegacyWeaknessPage from "./components/legacy/WeaknessPage";
+import LegacyGradedPracticePage from "./components/legacy/GradedPracticePage";
+import LegacyKnowledgeMapPage from "./components/legacy/KnowledgeMapPage";
+import LegacyWrongQuestionsPage from "./components/legacy/WrongQuestionsPage";
+import LegacyProfilePage from "./components/legacy/ProfilePage";
+import LegacySettingsPage from "./components/legacy/SettingsPage";
+import LegacyChangePasswordPage from "./components/legacy/ChangePasswordPage";
+import LegacySwitchGradePage from "./components/legacy/SwitchGradePage";
+import LegacyDataManagementPage from "./components/legacy/DataManagementPage";
 
 export const router = createHashRouter([
   {
     path: "/",
     Component: Root,
     children: [
-      { index: true, Component: LoginPage },
+      { index: true, Component: UiIndexPage },
+      { path: "login", Component: LoginPage },
       { path: "dashboard", Component: Dashboard },
+      { path: "github-legacy", Component: LegacyDashboard },
+      { path: "legacy", Component: LegacyDashboard },
+      { path: "legacy/subject/:subjectId", Component: LegacySubjectPage },
+      { path: "legacy/practice/:subjectId/:chapterId", Component: LegacyPracticePage },
+      { path: "legacy/weakness", Component: LegacyWeaknessPage },
+      { path: "legacy/graded-practice/:knowledgeId", Component: LegacyGradedPracticePage },
+      { path: "legacy/knowledge-map", Component: LegacyKnowledgeMapPage },
+      { path: "legacy/wrong-questions", Component: LegacyWrongQuestionsPage },
+      { path: "legacy/profile", Component: LegacyProfilePage },
+      { path: "legacy/settings", Component: LegacySettingsPage },
+      { path: "legacy/settings/change-password", Component: LegacyChangePasswordPage },
+      { path: "legacy/settings/switch-grade", Component: LegacySwitchGradePage },
+      { path: "legacy/settings/data-management", Component: LegacyDataManagementPage },
       { path: "subject/:subjectId", Component: SubjectPage },
       { path: "lesson/chapter/:subjectId/:chapterId", Component: LessonIntroPage },
       { path: "lesson/knowledge/:knowledgeId", Component: LessonIntroPage },

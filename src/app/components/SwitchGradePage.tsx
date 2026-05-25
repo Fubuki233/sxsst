@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { storage } from '../utils/storage';
 import { ArrowLeft, Check } from 'lucide-react';
+import { BottomNav } from './BottomNav';
 
 const ALL_GRADES = [
   { value: 1, label: '小学一年级' },
@@ -28,6 +29,44 @@ export default function SwitchGradePage() {
     storage.updateGrade(user.username, g);
     setTimeout(() => navigate(-1), 400);
   };
+  const isSeniorStudent = user?.grade !== undefined && user.grade >= 4;
+
+  if (isSeniorStudent) {
+    return (
+      <div className="size-full flex flex-col relative overflow-hidden [background:var(--senior-page-bg)] text-white">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_18%_6%,rgba(255,255,255,0.08),transparent_24%),radial-gradient(circle_at_84%_18%,rgba(168,137,243,0.13),transparent_28%)]" />
+        <div className="relative z-10 flex-1 overflow-auto px-4 pt-7 pb-7">
+          <div className="mx-auto w-full max-w-[480px]">
+            <button onClick={() => navigate(-1)} className="mb-5 flex h-9 items-center gap-2 rounded-full bg-white/10 px-3 text-white/82">
+              <ArrowLeft size={16} />
+              <span style={{ fontSize: '13px', fontWeight: 800 }}>返回</span>
+            </button>
+            <h1 className="text-white" style={{ fontFamily: 'Georgia, "STKaiti", "KaiTi", serif', fontSize: '42px', fontWeight: 900, lineHeight: 1 }}>切换年级</h1>
+
+            <div className="mt-7 space-y-3">
+              {ALL_GRADES.map(g => {
+                const isCurrent = g.value === currentGrade;
+                const isSelected = g.value === selected;
+                return (
+                  <button
+                    key={g.value}
+                    onClick={() => handleSelect(g.value)}
+                    className={`flex h-14 w-full items-center rounded-[8px] px-4 text-left transition-colors ${isCurrent ? 'bg-white/18' : 'bg-white/10 hover:bg-white/14'}`}
+                  >
+                    <span className="text-white" style={{ fontSize: '15px', fontWeight: isCurrent ? 900 : 700 }}>{g.label}{isCurrent ? '（当前）' : ''}</span>
+                    {isSelected && <Check size={18} className="ml-auto text-[#87EBCF]" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="relative z-10 flex-shrink-0">
+          <BottomNav />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="size-full flex flex-col" style={{ background: '#EEF4FF' }}>

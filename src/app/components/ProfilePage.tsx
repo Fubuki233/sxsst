@@ -135,6 +135,138 @@ export default function ProfilePage() {
   for (let d = 1; d <= daysInMonth; d++) calendarCells.push(d);
   const activeDays = Object.keys(dailyStatsMap).length;
   const medalCount = Math.floor(totalQuestions / 20) + (overallAccuracy >= 80 ? 1 : 0);
+  const isSeniorStudent = user.grade >= 4;
+
+  if (isSeniorStudent) {
+    return (
+      <div className="size-full flex flex-col relative overflow-hidden [background:var(--senior-page-bg)] text-white">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_18%_6%,rgba(255,255,255,0.08),transparent_24%),radial-gradient(circle_at_84%_18%,rgba(168,137,243,0.13),transparent_28%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-32 pointer-events-none bg-gradient-to-t from-[#4E4248]/85 to-transparent" />
+
+        <div className="relative z-10 flex-1 overflow-auto px-4 pt-7 pb-7">
+          <div className="mx-auto w-full max-w-[480px] space-y-5">
+            <section className="relative overflow-hidden rounded-[8px] p-5" style={{ background: '#A889F3' }}>
+              <div className="absolute right-[-58px] top-[-46px] h-44 w-44 rounded-full bg-[#CBB8FF]" />
+              <button
+                onClick={() => navigate('/settings')}
+                className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/22 text-white transition-colors hover:bg-white/30"
+              >
+                <Settings size={21} />
+              </button>
+
+              <div className="relative z-10 flex items-center gap-4 pr-10">
+                <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-full bg-white/24 p-1">
+                  <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#2B2B2E]/24">
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+                    ) : (
+                      <User size={36} className="text-white" />
+                    )}
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <h1 className="truncate text-white" style={{ fontFamily: 'Georgia, "STKaiti", "KaiTi", serif', fontSize: '31px', fontWeight: 900, lineHeight: 1 }}>
+                    {displayName}
+                  </h1>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-white/22 px-3 py-1 text-white" style={{ fontSize: '12px', fontWeight: 900 }}>{getGradeLabel(user.grade)}</span>
+                    <span className="rounded-full bg-white/22 px-3 py-1 text-white" style={{ fontSize: '12px', fontWeight: 900 }}>{medalCount} 枚勋章</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: '累计做题', value: totalQuestions },
+                { label: '坚持学习', value: activeDays },
+                { label: '正确率', value: `${overallAccuracy}%` },
+              ].map(item => (
+                <div key={item.label} className="rounded-[8px] bg-white/10 px-3 py-3">
+                  <div className="text-white" style={{ fontSize: '22px', fontWeight: 900 }}>{item.value}</div>
+                  <div className="mt-1 text-white/52" style={{ fontSize: '11px', fontWeight: 800 }}>{item.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <section className="rounded-[8px] bg-white/10 p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-white" style={{ fontSize: '18px', fontWeight: 900 }}>学习日历</h2>
+                  <div className="mt-1 text-white/52" style={{ fontSize: '12px', fontWeight: 700 }}>{calendarYear}年</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={prevMonth} className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white">
+                    <ChevronLeft size={20} />
+                  </button>
+                  <span className="min-w-[64px] text-center text-white" style={{ fontSize: '14px', fontWeight: 900 }}>{MONTH_NAMES[calendarMonth - 1]}</span>
+                  <button onClick={nextMonth} className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white">
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {DAY_NAMES.map(name => (
+                  <div key={name} className="py-1 text-white/42" style={{ fontSize: '12px', fontWeight: 800 }}>{name}</div>
+                ))}
+                {calendarCells.map((day, idx) => {
+                  if (day === null) return <div key={`empty-${idx}`} className="h-11" />;
+                  const key = `${calendarYear}-${String(calendarMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const stat = dailyStatsMap[key];
+                  const hasData = stat && stat.count > 0;
+                  return (
+                    <div
+                      key={key}
+                      className="flex h-11 flex-col items-center justify-center rounded-[8px]"
+                      style={{
+                        background: hasData ? 'var(--senior-calendar-studied-bg)' : 'transparent',
+                        color: hasData ? 'var(--senior-calendar-studied-text)' : 'var(--senior-calendar-empty-text)',
+                        boxShadow: hasData ? '0 8px 18px rgba(22, 209, 197, 0.20)' : 'none',
+                      }}
+                    >
+                      <span style={{ fontSize: '13px', fontWeight: hasData ? 900 : 600 }}>{day}</span>
+                      {hasData && <span style={{ color: 'var(--senior-calendar-studied-subtext)', fontSize: '9px', fontWeight: 800 }}>{stat.count}题</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            <div className="grid gap-3">
+              {[
+                { title: '进步明显', items: improving, color: '#87EBCF', icon: TrendingUp },
+                { title: '需要关注', items: declining, color: '#ED8F88', icon: TrendingDown },
+              ].map(section => {
+                const Icon = section.icon;
+                return (
+                  <section key={section.title} className="rounded-[8px] bg-white/10 p-4">
+                    <div className="mb-3 flex items-center gap-2 text-white" style={{ fontSize: '15px', fontWeight: 900 }}>
+                      <Icon size={18} style={{ color: section.color }} />
+                      {section.title}
+                    </div>
+                    {section.items.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {section.items.map(kp => (
+                          <span key={kp} className="rounded-full bg-white/12 px-3 py-1 text-white/76" style={{ fontSize: '12px', fontWeight: 800 }}>{kp}</span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-white/42" style={{ fontSize: '13px', fontWeight: 700 }}>暂无数据</div>
+                    )}
+                  </section>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex-shrink-0">
+          <BottomNav />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="size-full flex flex-col relative overflow-hidden" style={{ background: '#EEF4FF' }}>
