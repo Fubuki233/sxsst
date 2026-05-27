@@ -82,6 +82,128 @@
   }
 }
 
+@media (min-width: 640px) {
+  .senior-portrait-shell .hidden.sm\:flex,
+  .senior-portrait-shell .hidden.sm\:block {
+    display: none !important;
+  }
+
+  .senior-portrait-shell .sm\:grid-cols-2,
+  .senior-portrait-shell .sm\:grid-cols-3,
+  .senior-portrait-shell .sm\:grid-cols-4 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+
+  .senior-portrait-shell .sm\:gap-3,
+  .senior-portrait-shell .sm\:gap-4,
+  .senior-portrait-shell .sm\:gap-5 {
+    gap: 0.75rem !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .senior-portrait-shell .md\:flex-row {
+    flex-direction: column !important;
+  }
+
+  .senior-portrait-shell .md\:grid-cols-2,
+  .senior-portrait-shell .md\:grid-cols-3,
+  .senior-portrait-shell .md\:grid-cols-\[120px_1fr_118px\],
+  .senior-portrait-shell .md\:grid-cols-\[1fr_360px\] {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+
+  .senior-portrait-shell .md\:grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .senior-portrait-shell .md\:px-8,
+  .senior-portrait-shell .md\:px-6,
+  .senior-portrait-shell .md\:px-5 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .senior-portrait-shell .md\:p-8,
+  .senior-portrait-shell .md\:p-6,
+  .senior-portrait-shell .md\:p-5 {
+    padding: 1rem !important;
+  }
+
+  .senior-portrait-shell .md\:py-5,
+  .senior-portrait-shell .md\:py-4,
+  .senior-portrait-shell .md\:py-3\.5,
+  .senior-portrait-shell .md\:py-3 {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  .senior-portrait-shell .md\:pt-5,
+  .senior-portrait-shell .md\:pt-4,
+  .senior-portrait-shell .md\:pt-3 {
+    padding-top: 0.75rem !important;
+  }
+
+  .senior-portrait-shell .md\:pb-6,
+  .senior-portrait-shell .md\:pb-5,
+  .senior-portrait-shell .md\:pb-4 {
+    padding-bottom: 1rem !important;
+  }
+
+  .senior-portrait-shell .md\:gap-5,
+  .senior-portrait-shell .md\:gap-4,
+  .senior-portrait-shell .md\:gap-3 {
+    gap: 0.75rem !important;
+  }
+
+  .senior-portrait-shell .md\:space-y-6 > :not([hidden]) ~ :not([hidden]),
+  .senior-portrait-shell .md\:space-y-5 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-y-reverse: 0 !important;
+    margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse))) !important;
+    margin-bottom: calc(1rem * var(--tw-space-y-reverse)) !important;
+  }
+
+  .senior-portrait-shell .md\:overflow-visible {
+    overflow: auto !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .senior-portrait-shell .lg\:flex-row {
+    flex-direction: column !important;
+  }
+
+  .senior-portrait-shell .lg\:grid-cols-2,
+  .senior-portrait-shell .lg\:grid-cols-3,
+  .senior-portrait-shell .lg\:grid-cols-\[1fr_260px\],
+  .senior-portrait-shell .lg\:grid-cols-\[0\.9fr_1\.1fr\] {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+
+  .senior-portrait-shell .lg\:grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .senior-portrait-shell .lg\:w-auto,
+  .senior-portrait-shell .lg\:w-\[74px\] {
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .senior-portrait-shell .xl\:flex-row {
+    flex-direction: column !important;
+  }
+
+  .senior-portrait-shell .xl\:grid-cols-\[1\.35fr_0\.85fr\],
+  .senior-portrait-shell .xl\:grid-cols-\[0\.9fr_1\.1fr\],
+  .senior-portrait-shell .xl\:grid-cols-\[0\.95fr_1\.05fr\],
+  .senior-portrait-shell .xl\:grid-cols-\[1fr_360px\],
+  .senior-portrait-shell .xl\:grid-cols-\[300px_1fr\] {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+}
+
 /* Forward: target slides in from right, current slides out left */
 @keyframes slideInFromRight {
   from { transform: translateX(100%); }

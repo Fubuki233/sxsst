@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { storage, Answer } from '../../utils/storage';
-import { TrendingUp, TrendingDown, User, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import { TrendingUp, TrendingDown, User, ChevronLeft, ChevronRight, Settings, Camera } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 
 export default function ProfilePage() {
@@ -10,6 +10,9 @@ export default function ProfilePage() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
   const [overallAccuracy, setOverallAccuracy] = useState(0);
+  const [profileName, setProfileName] = useState('');
+  const [profileAvatar, setProfileAvatar] = useState('');
+  const [saveMessage, setSaveMessage] = useState('');
 
   // ── Calendar state ──
   const now = new Date();
@@ -27,6 +30,8 @@ export default function ProfilePage() {
       return;
     }
     setUser(currentUser);
+    setProfileName(currentUser.displayName?.trim() || currentUser.username);
+    setProfileAvatar(currentUser.avatarUrl || '');
 
     const answers = storage.getAnswers();
     setTotalQuestions(answers.length);
@@ -85,6 +90,29 @@ export default function ProfilePage() {
   }, [navigate]);
 
   if (!user) return null;
+  const displayName = user.displayName?.trim() || user.username;
+
+  const handleAvatarUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setProfileAvatar(String(reader.result || ''));
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveProfile = () => {
+    const ok = storage.updateProfile(user.username, {
+      displayName: profileName,
+      grade: user.grade,
+      avatarUrl: profileAvatar,
+    });
+    if (!ok) return;
+    const nextUser = storage.getCurrentUser();
+    setUser(nextUser);
+    setSaveMessage('已保存');
+    window.dispatchEvent(new Event('profile-updated'));
+    window.setTimeout(() => setSaveMessage(''), 1400);
+  };
 
   const getGradeLabel = (grade: number) => {
     if (grade <= 6) return `小学${grade}年级`;
@@ -135,18 +163,41 @@ export default function ProfilePage() {
             >
               <Settings size={20} className="text-gray-400 hover:text-gray-600" />
             </button>
-            <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-md">
-                <User size={28} className="text-white" />
-              </div>
-              <div>
+            <div className="flex items-start gap-3 md:gap-4 mb-4 md:mb-6 pr-10">
+              <label className="relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-md overflow-hidden cursor-pointer flex-shrink-0">
+                {profileAvatar ? (
+                  <img src={profileAvatar} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <User size={28} className="text-white" />
+                )}
+                <span className="absolute inset-x-0 bottom-0 h-6 bg-black/38 text-white flex items-center justify-center">
+                  <Camera size={13} />
+                </span>
+                <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+              </label>
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span style={{ fontWeight: 700, fontSize: '18px' }}>{user.username}</span>
+                  <input
+                    value={profileName}
+                    onChange={event => setProfileName(event.target.value)}
+                    className="min-w-0 max-w-[180px] rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-1.5 text-gray-800 outline-none focus:border-blue-300 focus:bg-white"
+                    style={{ fontWeight: 700, fontSize: '18px' }}
+                  />
                   <span className="px-2.5 py-0.5 bg-blue-100 text-blue-600 rounded-full" style={{ fontSize: '12px', fontWeight: 600 }}>
                     {getGradeLabel(user.grade)}
                   </span>
                 </div>
-                <div className="text-sm text-gray-500 mt-0.5">{user.role === 'student' ? '学生' : '老师'}</div>
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    onClick={handleSaveProfile}
+                    className="h-8 rounded-full bg-blue-500 px-4 text-white transition-colors hover:bg-blue-600"
+                    style={{ fontSize: '13px', fontWeight: 800 }}
+                  >
+                    保存资料
+                  </button>
+                  {saveMessage && <span className="text-green-600" style={{ fontSize: '12px', fontWeight: 800 }}>{saveMessage}</span>}
+                </div>
+                <div className="text-sm text-gray-500 mt-1">{user.role === 'student' ? '学生' : '老师'}</div>
               </div>
             </div>
 

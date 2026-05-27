@@ -9,7 +9,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { BottomNav } from './BottomNav';
 
 // ── Dynamic import: all PNG icons from imports folder ──
-const iconModules = import.meta.glob('../../imports/*.png', { eager: true, import: 'default' }) as Record<string, string>;
+const iconModules = import.meta.glob('../../../imports/*.png', { eager: true, import: 'default' }) as Record<string, string>;
 
 function getIcon(name: string): string {
   for (const [path, url] of Object.entries(iconModules)) {
@@ -94,6 +94,7 @@ export default function Dashboard() {
   if (!user) return null;
 
   const gradeLabel = GRADE_CHINESE[user.grade] || `${user.grade}年级`;
+  const displayName = user.displayName?.trim() || user.username;
   const allAnswers = storage.getAnswers();
   const badgeCount = Math.floor(allAnswers.filter(a => a.isCorrect).length / 5);
 
@@ -105,8 +106,12 @@ export default function Dashboard() {
         {/* Avatar + Name + Grade */}
         <div className="flex items-center gap-3">
           <div className="relative flex-shrink-0">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-md">
-              <User size={22} className="text-white" />
+            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-md overflow-hidden">
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                <User size={22} className="text-white" />
+              )}
             </div>
             <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
               <Star size={9} className="text-white" style={{ fill: 'white' }} />
@@ -114,7 +119,7 @@ export default function Dashboard() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span style={{ fontWeight: 700, fontSize: '16px' }}>{user.username}同学</span>
+              <span style={{ fontWeight: 700, fontSize: '16px' }}>{displayName}同学</span>
               <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded-full"
                 style={{ fontSize: '11px', fontWeight: 600 }}>{gradeLabel}</span>
             </div>
